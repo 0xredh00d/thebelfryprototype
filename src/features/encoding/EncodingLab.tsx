@@ -122,55 +122,6 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
   );
 }
 
-// Simple logic analyzer oscilloscope graphic
-function LogicOscilloscope({ isActive }: { isActive: boolean }) {
-  const shouldReduceMotion = useReducedMotion();
-  return (
-    <div className="h-10 w-full bg-bg-void/75 border border-border-hairline/10 rounded-sm overflow-hidden relative flex items-center px-2">
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-      <div className="absolute top-1 left-2 font-mono text-[12px] text-cyan-dim/40 tracking-widest uppercase">
-        SIGNAL WAVEFORM
-      </div>
-      <svg className="w-full h-8 opacity-80" viewBox="0 0 200 40" preserveAspectRatio="none">
-        <motion.path
-          d="M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20"
-          fill="none"
-          stroke="var(--color-cyan-primary)"
-          strokeWidth="1.5"
-          animate={isActive && !shouldReduceMotion ? {
-            strokeDasharray: ["4 4", "10 5", "4 4"],
-            strokeDashoffset: [0, -40],
-            d: [
-              "M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20",
-              "M 0 20 Q 20 35, 40 20 T 80 20 T 120 20 T 160 20 T 200 20",
-              "M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20"
-            ]
-          } : {}}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.path
-          d="M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20"
-          fill="none"
-          stroke="rgb(var(--rgb-accent) / 0.25)"
-          strokeWidth="1"
-          animate={isActive && !shouldReduceMotion ? {
-            strokeDashoffset: [0, 40],
-            d: [
-              "M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20",
-              "M 0 20 Q 15 5, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20",
-              "M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20"
-            ]
-          } : {}}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
-        />
-      </svg>
-      <div className="absolute bottom-1 right-2 font-mono text-[12px] text-cyan-primary/50 flex items-center space-x-1">
-        <span className={`w-1 h-1 rounded-full ${isActive ? "bg-cyan-primary animate-pulse" : "bg-text-dim/20"}`} />
-        <span>{isActive ? "SAMPLED" : "STANDBY"}</span>
-      </div>
-    </div>
-  );
-}
 
 export default function EncodingLab() {
   const [inputText, setInputText] = useState<string>("");
@@ -360,7 +311,7 @@ export default function EncodingLab() {
     <div className="h-full w-full p-4 grid grid-cols-12 gap-4 overflow-y-auto font-chakra select-none">
       
       {/* ================= LEFT COLUMN: CENTRAL SIGNAL SOURCE (INPUT & SYSTEM MONITOR) ================= */}
-      <div className="col-span-12 xl:col-span-5 flex flex-col space-y-4">
+      <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 min-h-0">
         
         {/* Input buffer block */}
         <GlassPanel className="p-4 flex flex-col min-h-[190px]" clipSize="md" showCornerTicks={true}>
@@ -400,115 +351,20 @@ export default function EncodingLab() {
             >
               CLEAR
             </button>
-            <span className="text-[12px] uppercase text-cyan-primary/50 self-center">
-              CENTRAL BUS: CH_01
-            </span>
           </div>
         </GlassPanel>
 
-        {/* PROMOTED & EXPANDED: 8x8 LED System Bus Monitor & Logic Analyzer */}
-        <GlassPanel className="p-4 flex-1 flex flex-col" clipSize="md" showCornerTicks={true}>
-          <div className="border-b border-border-hairline/25 pb-1 mb-3.5 flex justify-between items-end">
-            <div>
-              <h3 className="font-display text-[13px] font-black tracking-widest text-cyan-text flex items-center uppercase">
-                <span className="w-1.5 h-3 bg-cyan-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_var(--color-accent-primary)]" />
-                LOGIC ANALYZER // BYTE-BIT MONITOR
-              </h3>
-              <span className="text-[12px] font-share text-text-dim block uppercase mt-0.5">
-                Live 8-bit bus mapping of the primary input buffer index range
-              </span>
-            </div>
-            <span className="font-mono text-[12px] text-green-verified bg-green-verified/5 px-1.5 py-0.5 border border-green-verified/15 animate-pulse">
-              BUS MASTER
-            </span>
-          </div>
-
-          {/* Fully featured hardware register monitor display */}
-          <div className="flex-1 bg-bg-void/60 border border-border-hairline/10 p-3.5 flex flex-col justify-between space-y-3 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-            
-            <div className="w-full space-y-2">
-              {/* Header row */}
-              <div className="grid grid-cols-12 gap-1 text-[12px] font-mono text-text-dim border-b border-border-hairline/10 pb-1 font-bold uppercase tracking-wider">
-                <div className="col-span-2">CHANNEL</div>
-                <div className="col-span-1 text-center">CHR</div>
-                <div className="col-span-6 text-center">8-BIT LOGIC REGISTER</div>
-                <div className="col-span-1.5 text-right">HEX</div>
-                <div className="col-span-1.5 text-right">DEC</div>
-              </div>
-
-              {/* Data rows */}
-              <div className="space-y-1.5">
-                {bitGrid.map((row) => (
-                  <div
-                    key={row.index}
-                    className="grid grid-cols-12 gap-1 items-center hover:bg-cyan-primary/5 px-0.5 py-1 transition-colors duration-150 border-b border-border-hairline/5"
-                  >
-                    {/* Channel */}
-                    <div className="col-span-2 font-mono text-[12px] text-cyan-dim/80 flex items-center space-x-1">
-                      <span className={`w-1 h-1 rounded-full ${row.charCode ? "bg-cyan-primary shadow-[0_0_4px_var(--color-accent-primary)]" : "bg-text-dim/10"}`} />
-                      <span>BUS.0{row.index + 1}</span>
-                    </div>
-
-                    {/* Character tag */}
-                    <div className="col-span-1 text-center">
-                      <span className={`font-mono text-[12px] font-black px-1 py-0.2 ${row.charCode ? "text-cyan-text bg-cyan-primary/10" : "text-text-dim/30 bg-bg-void"}`}>
-                        {row.charCode === 32 ? "SPC" : row.charCode === 0 ? "Ø" : row.char}
-                      </span>
-                    </div>
-
-                    {/* LED Logic Bits */}
-                    <div className="col-span-6 flex justify-center space-x-1 md:space-x-1.5">
-                      {row.bits.map((bit, bitIdx) => {
-                        const isOne = bit === 1;
-                        return (
-                          <div
-                            key={bitIdx}
-                            className={`w-3.5 h-3.5 border transition-all duration-300 relative group flex items-center justify-center ${
-                              isOne
-                                ? "bg-cyan-primary border-cyan-primary shadow-[0_0_8px_rgb(var(--rgb-accent) / 0.9)] scale-105"
-                                : "bg-bg-void border-border-hairline/15 hover:border-cyan-primary/40"
-                            }`}
-                            style={{ clipPath: "polygon(2px 0, 100% 0, 100% calc(100% - 2px), calc(100% - 2px) 100%, 0 100%, 0 2px)" }}
-                            title={`Byte ${row.index + 1}, Bit ${8 - bitIdx}: ${bit}`}
-                          >
-                            {/* Hover bit detail tooltip overlay */}
-                            <span className="hidden group-hover:block absolute bottom-5 left-1/2 -translate-x-1/2 bg-bg-void border border-cyan-primary px-1.5 py-0.5 text-[12px] text-cyan-primary font-mono whitespace-nowrap z-50 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                              REG{8 - bitIdx} = {bit}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Hex indicator */}
-                    <div className="col-span-1.5 text-right font-mono text-[12px] text-cyan-dim font-bold">
-                      {row.hexCode !== "--" ? `0x${row.hexCode}` : "--"}
-                    </div>
-
-                    {/* Dec indicator */}
-                    <div className="col-span-1.5 text-right font-mono text-[12px] text-text-dim">
-                      {row.decCode}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Simulated Live wave oscilloscope */}
-            <LogicOscilloscope isActive={inputText.length > 0} />
-          </div>
-
-          <div className="flex justify-between text-[12px] font-mono text-text-dim border-t border-border-hairline/15 pt-1.5 mt-2">
-            <span>BYTES: 01 to 08 REGISTER CHANNELS</span>
-            <span className="text-cyan-primary font-bold animate-hex-pulse-flicker">LIVE BUS SPECTROGRAM</span>
-          </div>
-        </GlassPanel>
+        {/* The 8-bit bus monitor / logic analyzer that sat here has been cut.
+            It rendered an 8-row LED register readout of only the first eight
+            bytes of the buffer — a fixed, near-static display that dominated
+            this column while telling you nothing an ARG puzzle needs. The
+            breakout channels are the point of this module; they now get the
+            room. */}
 
       </div>
 
       {/* ================= CENTER COLUMN: THE SIMULTANEOUS FORMAT BREAKOUT BOARD ================= */}
-      <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 min-h-0">
+      <div className="col-span-12 xl:col-span-5 flex flex-col space-y-4 min-h-0">
         
         <GlassPanel className="p-4 flex-1 flex flex-col min-h-0" clipSize="md" showCornerTicks={true}>
           <div className="border-b border-border-hairline/25 pb-2 mb-3.5 flex justify-between items-center">
@@ -550,7 +406,7 @@ export default function EncodingLab() {
               definite height and overflow-y-auto could never engage — "show all"
               grew the container to ~2600px and pushed the page down instead of
               scrolling inside it. */}
-          <div className="flex-1 min-h-0 max-h-[58vh] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+          <div className="flex-1 min-h-0 max-h-[72vh] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
             {(() => {
               const rowsData = [
                 {
