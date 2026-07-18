@@ -8,6 +8,7 @@ import ProgressBar from "../../components/ui/ProgressBar";
 import ScannerAnimation from "../../components/ui/ScannerAnimation";
 import Terminal from "../../components/ui/Terminal";
 import NeuralActivity from "../../components/ui/NeuralActivity";
+import DataWall from "../../components/ui/DataWall";
 import HexCluster from "../../components/ui/HexCluster";
 import AnimatedCounter from "../../components/ui/AnimatedCounter";
 import CorrelationNetwork from "../../components/ui/CorrelationNetwork";
@@ -526,6 +527,26 @@ export default function DashboardPage() {
               <span>{isScanning ? `ANALYZING EVIDENCE (${scanProgress}%)` : "INITIALIZE FORENSIC SCAN"}</span>
             </button>
           </div>
+
+          {/* IDLE FILL — the scanner panel stretches to match the taller side
+              columns, so with no result and no scan running its lower half was
+              simply void. At 2560 wide that gap is most of the panel. This
+              holds the space with the standby readout and machine chatter
+              instead of nothing, and yields to the result panel below. */}
+          {!scannedEvidence && !isScanning && (
+            <div className="mt-4 flex-1 min-h-0 relative border border-border-hairline/15 bg-bg-void/25 overflow-hidden">
+              <DataWall lines={10} />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center gap-2 px-6">
+                <span className="font-display text-sm font-extrabold tracking-[0.18em] text-white/70 uppercase">
+                  Analyzer idle
+                </span>
+                <span className="font-share text-[12px] tracking-wide text-text-dim/60 uppercase max-w-md leading-relaxed">
+                  Paste an intercept above or drop a file to begin. Results and
+                  candidate matches will appear here.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* SCANNED EVIDENCE RESULT PANEL (Rendered after successful scan) */}
           {scannedEvidence && !isScanning && (
