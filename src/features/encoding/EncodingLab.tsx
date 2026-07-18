@@ -22,7 +22,7 @@ import Badge from "../../components/ui/Badge";
 import { useAppStore } from "../../store/appStore";
 import ShinyText from "../../components/react-bits/ShinyText";
 import FactoryThroughputBar from "../../components/ui/FactoryThroughputBar";
-import { playSuccessChime, playFailBuzz, playTypeKey, playHoverEvidence, playPinClick } from "../../lib/soundEngine";
+import { playSuccessChime, playFailBuzz, playTypeKey, playHoverEvidence, playPinClick, playHoverBlip } from "../../lib/soundEngine";
 import { getTool, asText, pipelineLayerIds } from "../../lib/tools/registry";
 import { textToBigInteger, bigIntegerToText } from "../../lib/tools/utility/bigInteger";
 
@@ -189,6 +189,7 @@ export default function EncodingLab() {
    * from the sidebar.
    */
   const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
+  const [showAllPorts, setShowAllPorts] = useState(false);
 
   useEffect(() => {
     if (!pendingToolId) return;
@@ -661,7 +662,19 @@ export default function EncodingLab() {
                 }
               ];
 
-              return rowsData.map((row, idx) => (
+              // Ports that produced output lead; the rest collapse into a
+              // strip. Rendering all sixteen at full height meant decoding a
+              // Base64 string gave one useful card and fifteen full-size
+              // "PORT STANDBY" placeholders to scroll past.
+              // A failed decoder returns an "ERROR: ..." string, which is
+              // truthy — so filtering on presence alone promoted every failure
+              // to a full-size card. Only genuine output counts as a hit.
+              const isHit = (v: string) => !!v && !v.startsWith("ERROR");
+              const activeRows = rowsData.filter((r) => isHit(r.value));
+              const idleRows = rowsData.filter((r) => !isHit(r.value));
+              const shown = showAllPorts ? rowsData : activeRows;
+
+              const renderRow = (row: typeof rowsData[0], idx: number, total: number) => (
                 <div key={row.key} className="flex items-stretch group" id={`breakout-container-${row.key}`}>
                   {/* Visually connecting signal breakout line */}
                   <BreakoutLine index={idx} total={rowsData.length} isActive={!!row.value} />
@@ -740,7 +753,64 @@ export default function EncodingLab() {
                     </div>
                   </div>
                 </div>
-              ));
+              );
+
+              return (
+                <>
+                  {shown.length === 0 && (
+                    <div className="border border-dashed border-border-hairline/20 bg-bg-void/25 p-4 text-center">
+                      <p className="font-display text-sm font-extrabold tracking-[0.16em] text-white uppercase">
+                        Awaiting input
+                      </p>
+                      <p className="text-[12px] text-text-dim/70 font-share tracking-wide mt-1">
+                        Paste into the buffer above and every format that can read it
+                        will appear here.
+                      </p>
+                    </div>
+                  )}
+
+                  {shown.map((row, idx) => renderRow(row, idx, shown.length))}
+
+                  {!showAllPorts && idleRows.length > 0 && (
+                    <div className="border border-border-hairline/15 bg-bg-void/35 p-2.5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-share text-[12px] tracking-widest text-text-dim/70 uppercase">
+                          {idleRows.length} format{idleRows.length === 1 ? "" : "s"} produced nothing
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowAllPorts(true)}
+                          onMouseEnter={() => playHoverBlip()}
+                          className="hud-target font-display text-[12px] font-extrabold tracking-[0.14em] uppercase text-accent-primary px-2 py-1 border border-accent-primary/40 hover:bg-accent-primary/10 transition-colors cursor-pointer"
+                        >
+                          Show all
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {idleRows.map((r) => (
+                          <span
+                            key={r.key}
+                            className="font-mono text-[12px] text-text-dim/50 border border-border-hairline/15 px-1.5 py-0.5 uppercase"
+                          >
+                            {r.badge}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {showAllPorts && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPorts(false)}
+                      onMouseEnter={() => playHoverBlip()}
+                      className="hud-target w-full font-display text-[12px] font-extrabold tracking-[0.14em] uppercase text-text-dim hover:text-accent-primary px-2 py-1.5 border border-border-hairline/20 hover:border-accent-primary/40 transition-colors cursor-pointer"
+                    >
+                      Collapse empty formats
+                    </button>
+                  )}
+                </>
+              );
             })()}
           </div>
         </GlassPanel>
