@@ -798,10 +798,11 @@ export default function CryptoLab() {
             <button
               onClick={handleDecrypt}
               onMouseEnter={() => playHoverEvidence()}
-              className="flex-1 font-display font-black text-xs uppercase tracking-widest py-4 border-2 border-cyan-primary bg-cyan-primary text-bg-void hover:shadow-[0_0_20px_rgb(var(--rgb-accent) / 0.5)] transition-all cursor-pointer flex items-center justify-center space-x-2"
+              className="hud-target flex-1 font-display font-black text-xs uppercase tracking-widest py-4 border-2 border-green-active bg-green-active text-bg-void shadow-[0_0_18px_-2px_rgb(var(--rgb-green)_/_0.55)] hover:shadow-[0_0_30px_0_rgb(var(--rgb-green)_/_0.85)] transition-all cursor-pointer flex items-center justify-center space-x-2"
               style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)"
-              }}
+                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                "--reticle-color": "var(--color-green-active)"
+              } as React.CSSProperties}
             >
               <Unlock className="w-5 h-5" />
               <span>RUN DECRYPTION ENGINE</span>
@@ -809,10 +810,11 @@ export default function CryptoLab() {
             <button
               onClick={handleEncrypt}
               onMouseEnter={() => playHoverEvidence()}
-              className="flex-1 font-display font-black text-xs uppercase tracking-widest py-4 border-2 border-amber-alert bg-amber-alert text-bg-void hover:shadow-[0_0_20px_rgba(255,176,32,0.5)] transition-all cursor-pointer flex items-center justify-center space-x-2"
+              className="hud-target flex-1 font-display font-black text-xs uppercase tracking-widest py-4 border-2 border-blue-pale bg-blue-pale text-bg-void shadow-[0_0_18px_-2px_rgb(var(--rgb-blue-pale)_/_0.45)] hover:shadow-[0_0_30px_0_rgb(var(--rgb-blue-pale)_/_0.7)] transition-all cursor-pointer flex items-center justify-center space-x-2"
               style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)"
-              }}
+                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                "--reticle-color": "var(--color-blue-pale)"
+              } as React.CSSProperties}
             >
               <Lock className="w-5 h-5" />
               <span>RUN ENCRYPTION ENGINE</span>

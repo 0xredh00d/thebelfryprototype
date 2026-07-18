@@ -51,16 +51,24 @@ export default function TopBar() {
       {/* Left: Belfry systems title branding. The subtitle only appears once
           there is genuine room — at ≤1440 the three sections collided and the
           knight badge was clipped off the right edge. */}
-      <div className="flex items-center shrink-0">
-        <div className="flex items-baseline space-x-2 whitespace-nowrap">
-          <span className="font-display text-xs font-black tracking-widest text-text-primary uppercase flex items-center animate-hologram-flicker">
-            <span className="w-1.5 h-3 bg-cyan-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_8px_var(--color-accent-primary)]" />
-            BATCOMPUTER
+      {/* A two-line lockup rather than two labels sharing a baseline: the name
+          leads, the platform line sits under it as a subordinate caption. This
+          also mirrors the KnightBadge stack on the far right, so the header
+          reads as bookended. The permanent hologram flicker is gone — it drew
+          the eye continuously on chrome that never changes. */}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <span
+          className="w-[3px] h-7 bg-accent-primary shrink-0 shadow-[0_0_10px_-1px_var(--color-accent-primary)]"
+          aria-hidden="true"
+        />
+        <span className="flex flex-col items-start leading-tight whitespace-nowrap">
+          <span className="font-display text-sm font-extrabold tracking-[0.22em] text-white uppercase">
+            Batcomputer
           </span>
-          <span className="hidden 2xl:inline font-share text-[13px] text-text-dim tracking-wider uppercase font-medium">
-            BELFRY SYSTEMS // FORENSIC PLATFORM
+          <span className="hidden 2xl:inline font-share text-[10px] text-cyan-dim/70 tracking-[0.16em] uppercase">
+            Belfry Systems &middot; Forensic Platform
           </span>
-        </div>
+        </span>
       </div>
 
       {/* Center: Module Focus Title. Flex-1 + truncate so it yields space and
