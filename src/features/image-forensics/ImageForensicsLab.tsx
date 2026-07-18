@@ -730,7 +730,7 @@ export default function ImageForensicsLab() {
                 Belfry Content Integrity Suite. Decode/extract-only — carves embedded files, decodes hidden LSB/DCT payloads, and analyzes entropy signatures.
               </p>
             </div>
-            <Badge variant="cyan" size="xs">OFFLINE SECURE LAB</Badge>
+            <Badge variant="green" size="xs">PROCESSED ON DEVICE</Badge>
           </div>
         </GlassPanel>
 
