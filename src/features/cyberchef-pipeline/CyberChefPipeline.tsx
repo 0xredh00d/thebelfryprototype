@@ -44,6 +44,7 @@ import {
   playSuccessChime,
   playPinClick,
   playHoverEvidence,
+  playHoverBlip,
   playTypeKey,
   playAddStep,
   playRemoveStep,
@@ -529,10 +530,22 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
   };
 
   // Sub-component renderer for sidebar tools
+  /**
+   * A registry row. The whole row is the control.
+   *
+   * It used to be an inert <div> whose only way to add an operation was a ~22px
+   * unlabelled "+" icon at the far right, with cursor:auto on the row itself —
+   * so clicking the operation, which is the obvious affordance, did nothing and
+   * the pipeline looked broken. The "+" is now decoration; the row is a button.
+   */
   const renderToolItem = (tool: typeof availableTools[0]) => (
-    <div
+    <button
       key={tool.id}
-      className="flex items-center justify-between p-2 border border-border-hairline/10 bg-bg-void/45 hover:border-cyan-primary/25 hover:bg-cyan-primary/[0.01] transition-all group select-none"
+      type="button"
+      onClick={() => addStep(tool.id)}
+      onMouseEnter={() => playHoverBlip()}
+      title={`Add ${tool.label} to the pipeline`}
+      className="hud-target w-full text-left cursor-pointer flex items-center justify-between p-2 border border-border-hairline/10 bg-bg-void/45 hover:border-cyan-primary/40 hover:bg-cyan-primary/[0.04] transition-all group select-none"
     >
       <div className="min-w-0 flex-1 pr-2">
         <h4 className="font-mono text-[13px] font-bold text-text-primary group-hover:text-cyan-text transition-colors uppercase truncate">
@@ -547,15 +560,14 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
         <Badge variant={tool.category === "cipher" ? "amber" : "cyan"} size="xs">
           {tool.category}
         </Badge>
-        <button
-          onClick={() => addStep(tool.id)}
-          className="p-1 bg-bg-void border border-border-hairline/15 text-cyan-primary hover:text-white hover:bg-cyan-primary transition-all rounded-none"
-          title="Insert Operation Step"
+        <span
+          aria-hidden="true"
+          className="p-1 bg-bg-void border border-border-hairline/15 text-cyan-primary group-hover:text-bg-void group-hover:bg-cyan-primary transition-all flex items-center justify-center"
         >
           <Plus className="w-3.5 h-3.5" />
-        </button>
+        </span>
       </div>
-    </div>
+    </button>
   );
 
   return (
@@ -575,7 +587,9 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                 </h1>
               </div>
               <p className="text-[13px] text-text-dim uppercase tracking-wider font-share mt-1 leading-relaxed">
-                Dual-mode cryptographic decipher. Build manual chainable recipes to unravel multi-encoded intercepts, or deploy sweeping brute-force matrices to automate crack routines.
+                Chain operations together to peel apart data that has been encoded or
+                encrypted more than once. Paste your text, add operations in order, and
+                each one feeds the next &mdash; or switch to auto-crack to try many keys at once.
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -674,19 +688,13 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
               </div>
             </div>
 
-            {pipelineSteps.length === 0 ? (
-              // Empty State
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-10 border border-dashed border-border-hairline/15 bg-bg-void/25 rounded-none">
-                <Terminal className="w-12 h-12 text-cyan-primary/20 animate-hex-pulse-flicker mb-3" />
-                <h4 className="font-display text-xs font-black tracking-widest text-cyan-text uppercase">
-                  RECIPE CONTAINER DISCHARGED
-                </h4>
-                <p className="text-[13px] text-text-dim uppercase tracking-widest font-share max-w-sm mt-1.5 leading-relaxed">
-                  Your cascade is currently blank. Search and select operations in the right sidebar to construct an ordered chain.
-                </p>
-              </div>
-            ) : (
-              // Populated Horizontal Conveyor Assembly Line
+            {/* The conveyor always renders, including with an empty recipe.
+                Previously an empty recipe replaced this whole region with a
+                placeholder — which also removed the input textarea, so on
+                arrival there was nowhere to paste anything and BAKE had nothing
+                to act on. The empty state is now a card inside the chain. */}
+            {(
+              // Horizontal Conveyor Assembly Line
               <div className="flex-1 flex flex-col justify-between min-h-0">
 
                 {/* ===== SEQUENCE PROGRESS RAIL — the "flow" identity for a chain of ops ===== */}
@@ -749,7 +757,7 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                 <div className="flex-1 overflow-x-auto pb-4 scrollbar-thin flex items-stretch gap-2 px-1">
                   
                   {/* GATE 1: INPUT VESSEL CARD */}
-                  <div className="w-[300px] shrink-0 flex items-stretch">
+                  <div className="w-[250px] shrink-0 flex items-stretch">
                     <GlassPanel className="p-4 flex flex-col w-full h-full justify-between" clipSize="sm" showCornerTicks={true}>
                       <div className="border-b border-border-hairline/20 pb-2 mb-3 flex justify-between items-center">
                         <div className="flex items-center space-x-2">
@@ -773,6 +781,29 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                       />
                     </GlassPanel>
                   </div>
+
+                  {/* EMPTY SLOT — stands in for the first operation so the
+                      chain still reads as input -> ? -> output. */}
+                  {pipelineSteps.length === 0 && (
+                    <>
+                      <div className="flex items-center shrink-0 self-center px-1">
+                        <PipelineConnector orientation="horizontal" active={false} className="w-8" />
+                      </div>
+                      <div className="w-[250px] shrink-0 flex items-stretch">
+                        <div className="w-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-border-hairline/25 bg-bg-void/25">
+                          <Terminal className="w-9 h-9 text-cyan-primary/25 animate-hex-pulse-flicker mb-2.5" />
+                          <h4 className="font-display text-sm font-extrabold tracking-[0.18em] text-white uppercase">
+                            No operations yet
+                          </h4>
+                          <p className="text-[12px] text-text-dim/80 font-share tracking-wide mt-1.5 leading-relaxed">
+                            Pick an operation from the registry on the right. Each one you
+                            add becomes a stage here, and the text above flows through them
+                            left to right into the output.
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* STEP CARDS IN CHAIN */}
                   {pipelineSteps.map((step, index) => {
@@ -930,7 +961,7 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                   </div>
 
                   {/* GATE 4: OUTPUT VESSEL CARD */}
-                  <div className="w-[300px] shrink-0 flex items-stretch">
+                  <div className="w-[250px] shrink-0 flex items-stretch">
                     <GlassPanel className="p-4 flex flex-col w-full h-full justify-between" clipSize="sm" showCornerTicks={true}>
                       <div className="border-b border-border-hairline/20 pb-2 mb-3 flex justify-between items-center">
                         <div className="flex items-center space-x-2">
@@ -1059,7 +1090,7 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
               <div className="flex-1 overflow-x-auto pb-4 scrollbar-thin flex items-stretch gap-2 px-1">
                 
                 {/* GATE 1: INTELLIGENCE STREAM SOURCE & CONFIG */}
-                <div className="w-[300px] shrink-0 flex items-stretch">
+                <div className="w-[250px] shrink-0 flex items-stretch">
                   <GlassPanel className="p-3.5 flex flex-col w-full h-full justify-between" clipSize="sm" showCornerTicks={true}>
                     <div className="border-b border-border-hairline/20 pb-1.5 mb-2.5 flex justify-between items-center">
                       <div className="flex items-center space-x-2">
@@ -1177,7 +1208,7 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                 </div>
 
                 {/* GATE 2: SWEEP & DECRYPTION MATRIX CORE */}
-                <div className="w-[300px] shrink-0 flex items-stretch">
+                <div className="w-[250px] shrink-0 flex items-stretch">
                   <GlassPanel className="p-3.5 flex flex-col w-full h-full justify-between" clipSize="sm" showCornerTicks={true}>
                     <div className="border-b border-border-hairline/20 pb-1.5 mb-2.5 flex justify-between items-center">
                       <div className="flex items-center space-x-2">
@@ -1263,7 +1294,7 @@ Simultaneous parameter sweeping successfully breached the encryption boundary. D
                 </div>
 
                 {/* GATE 3: TOP MATCH PLAUSIBILITY TERMINATION */}
-                <div className="w-[300px] shrink-0 flex items-stretch">
+                <div className="w-[250px] shrink-0 flex items-stretch">
                   <GlassPanel className="p-3.5 flex flex-col w-full h-full justify-between" clipSize="sm" showCornerTicks={true}>
                     <div className="border-b border-border-hairline/20 pb-1.5 mb-2.5 flex justify-between items-center">
                       <div className="flex items-center space-x-2">
