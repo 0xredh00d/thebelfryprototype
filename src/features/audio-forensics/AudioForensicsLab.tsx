@@ -330,6 +330,78 @@ const generateSewerAudio = (sampleRate: number, duration: number): AudioBuffer =
   return buffer;
 };
 
+
+/**
+ * Draws the tape-head waveform: discrete mirrored bars in waveform silver,
+ * modelled on the Arkham tape reference rather than a filled accent envelope.
+ *
+ * `amplitudeAt` returns 0..1 for a given x in canvas pixels, so the same
+ * renderer serves both the decoded buffer and the synthesised preset shapes.
+ *
+ * The trace animates even when paused: a travelling shimmer sweeps along it and
+ * each bar carries a small per-column jitter keyed to time, so the tape reads
+ * as spooling rather than frozen. Bars behind the playhead are held brighter,
+ * which is what makes playback legible at a glance.
+ */
+function drawTapeBars(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  t: number,
+  progress: number,
+  amplitudeAt: (x: number) => number,
+) {
+  const BAR = 3;
+  const GAP = 2;
+  const step = BAR + GAP;
+  const mid = height / 2;
+  const maxH = height * 0.44;
+  const silver = themeRgba("--rgb-waveform", 1);
+  const playedX = progress * width;
+
+  ctx.save();
+  for (let x = 0; x < width; x += step) {
+    const a = amplitudeAt(x + BAR / 2);
+
+    // Per-column jitter + a shimmer band travelling left to right.
+    const jitter = 0.88 + 0.12 * Math.sin(t * 6 + x * 0.35);
+    const shimmer = Math.max(0, 1 - Math.abs(((t * 0.35) % 1) * width - x) / 90);
+
+    const h = Math.max(1.5, a * maxH * jitter);
+    const played = x <= playedX;
+    const alpha = (played ? 0.95 : 0.42) + shimmer * 0.35;
+
+    ctx.fillStyle = silver;
+    ctx.globalAlpha = Math.min(1, alpha);
+    // Glow concentrated on the played side and the shimmer band, so the whole
+    // strip is not uniformly bloomed.
+    ctx.shadowBlur = played || shimmer > 0.15 ? 8 : 0;
+    ctx.shadowColor = silver;
+
+    // Mirrored around the centre line, with a hairline gap so the two halves
+    // stay legible as a pair rather than merging into one block.
+    ctx.fillRect(x, mid - h, BAR, h - 0.75);
+    ctx.fillRect(x, mid + 0.75, BAR, h - 0.75);
+  }
+  ctx.restore();
+
+  // Centre datum line.
+  ctx.strokeStyle = themeRgba("--rgb-waveform", 0.28);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, mid);
+  ctx.lineTo(width, mid);
+  ctx.stroke();
+
+  // Perforated rails top and bottom — the tape-transport framing in the
+  // reference, and they give the strip a defined edge inside its panel.
+  ctx.fillStyle = themeRgba("--rgb-waveform", 0.35);
+  for (let x = 2; x < width; x += 10) {
+    ctx.fillRect(x, 2, 4, 2);
+    ctx.fillRect(x, height - 4, 4, 2);
+  }
+}
+
 export default function AudioForensicsLab() {
   const shouldReduceMotion = useReducedMotion();
   const cases = useAppStore((state) => state.cases);
@@ -712,45 +784,16 @@ export default function AudioForensicsLab() {
 
       if (activeTab === "waveform") {
         if (decodedBuffer && waveformPeaks) {
-          // Draw real decoded waveform
-          ctx.strokeStyle = themeRgba("--rgb-accent", 0.75);
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          
-          const maxP = waveformPeaks.max;
-          const minP = waveformPeaks.min;
-          
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < width; i++) {
-            const amp = maxP[i] * (height / 2.2);
-            ctx.lineTo(i, height / 2 - amp);
-          }
-          for (let i = width - 1; i >= 0; i--) {
-            const amp = minP[i] * (height / 2.2);
-            ctx.lineTo(i, height / 2 - amp);
-          }
-          ctx.closePath();
-          ctx.fillStyle = themeRgba("--rgb-accent", 0.2);
-          ctx.fill();
-          ctx.stroke();
-
-          // Mirror / shadow bottom fill using RMS peaks
-          ctx.strokeStyle = themeRgba("--rgb-accent", 0.25);
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < width; i++) {
-            const amp = waveformPeaks.rms[i] * (height / 3);
-            ctx.lineTo(i, height / 2 + amp);
-          }
-          for (let i = width - 1; i >= 0; i--) {
-            const amp = -waveformPeaks.rms[i] * (height / 3);
-            ctx.lineTo(i, height / 2 + amp);
-          }
-          ctx.closePath();
-          ctx.fillStyle = themeRgba("--rgb-accent", 0.05);
-          ctx.fill();
-          ctx.stroke();
+          // Tape-head bar trace: discrete mirrored columns in waveform silver
+          // rather than a filled accent-coloured envelope.
+          const progress = currentTime / currentSample.duration;
+          drawTapeBars(ctx, width, height, performance.now() / 1000, progress, (i) => {
+            const idx = Math.min(width - 1, Math.max(0, Math.round(i)));
+            // Peak-to-peak excursion, with RMS setting the floor so quiet
+            // passages still read as signal rather than dropping to nothing.
+            const pk = Math.abs(waveformPeaks.max[idx]) + Math.abs(waveformPeaks.min[idx]);
+            return Math.min(1, pk * 0.55 + waveformPeaks.rms[idx] * 0.5);
+          });
 
           // Playhead indicator
           const progressRatio = currentTime / currentSample.duration;
@@ -771,66 +814,29 @@ export default function AudioForensicsLab() {
           ctx.closePath();
           ctx.fill();
         } else {
-          // Draw Preset Waveform
-          ctx.strokeStyle = themeRgba("--rgb-accent", 0.65);
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-
-          const samplePoints = 120;
+          // Preset shapes, drawn through the same tape-bar renderer so the
+          // synthesised samples animate identically to a decoded buffer.
           const progressRatio = currentTime / currentSample.duration;
-
-          for (let i = 0; i < samplePoints; i++) {
-            const x = (i / samplePoints) * width;
-            
-            // Generate a wave outline depending on the audio type
-            let amplitude = 0;
-            const normalIndex = i / samplePoints;
-
-            if (currentSample.type === "morse") {
-              // Morse clicks (pulsing blocks)
-              const morsePattern = Math.sin(normalIndex * 35) > 0.3 ? 0.8 : 0.05;
-              amplitude = morsePattern * (Math.sin(normalIndex * Math.PI) * 28);
-            } else if (currentSample.type === "reversed") {
-              // Echoey reverse vocal shapes (gradually rising in tail)
-              const rise = Math.pow(normalIndex, 2.5) * 20;
-              amplitude = (Math.sin(normalIndex * 80) * Math.cos(normalIndex * 15)) * rise;
-            } else if (currentSample.type === "dtmf") {
-              // Double sine wave patterns (dual tone)
-              amplitude = (Math.sin(normalIndex * 120) * 12 + Math.sin(normalIndex * 85) * 12) * Math.sin(normalIndex * Math.PI);
+          const sampleType = currentSample.type;
+          drawTapeBars(ctx, width, height, performance.now() / 1000, progressRatio, (x) => {
+            const n = x / width;
+            let a = 0;
+            if (sampleType === "morse") {
+              a = Math.sin(n * 35) > 0.3 ? 0.85 : 0.06;
+              a *= Math.sin(n * Math.PI);
+            } else if (sampleType === "reversed") {
+              a = Math.abs(Math.sin(n * 80) * Math.cos(n * 15)) * Math.pow(n, 2.5) * 2.4;
+            } else if (sampleType === "dtmf") {
+              a = Math.abs(Math.sin(n * 120) * 0.5 + Math.sin(n * 85) * 0.5) * Math.sin(n * Math.PI);
             } else {
-              // Smooth noise/ambience
-              amplitude = (Math.random() - 0.5) * 18 * Math.sin(normalIndex * Math.PI);
+              // Deterministic pseudo-noise: Math.random() here would reshuffle
+              // every bar on every frame and read as static, not a waveform.
+              a = Math.abs(Math.sin(n * 211.3) * Math.cos(n * 97.7)) * Math.sin(n * Math.PI);
             }
+            return Math.min(1, Math.max(0.04, a));
+          });
 
-            // Add dynamic live animation ripple if playing
-            if (isPlaying && x <= progressRatio * width && x >= progressRatio * width - 40) {
-              amplitude *= 1.4 + Math.random() * 0.4;
-            }
-
-            ctx.lineTo(x, height / 2 + amplitude);
-          }
-          ctx.stroke();
-
-          // Mirror / shadow bottom fill
-          ctx.strokeStyle = themeRgba("--rgb-accent", 0.15);
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < samplePoints; i++) {
-            const x = (i / samplePoints) * width;
-            const normalIndex = i / samplePoints;
-            let amplitude = 0;
-            if (currentSample.type === "morse") {
-              amplitude = (Math.sin(normalIndex * 35) > 0.3 ? 0.8 : 0.05) * (Math.sin(normalIndex * Math.PI) * 15);
-            } else if (currentSample.type === "reversed") {
-              amplitude = (Math.sin(normalIndex * 80) * Math.cos(normalIndex * 15)) * Math.pow(normalIndex, 2.5) * 10;
-            } else {
-              amplitude = (Math.random() - 0.5) * 8;
-            }
-            ctx.lineTo(x, height / 2 - amplitude);
-          }
-          ctx.stroke();
+          // (drawTapeBars already renders the mirrored half.)
 
           // Playhead indicator
           const playheadX = progressRatio * width;
