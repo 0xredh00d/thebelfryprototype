@@ -477,8 +477,8 @@ ${currentData.threatSummary}`;
         
         {/* Header Block */}
         <GlassPanel className="p-4 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex justify-between items-start gap-4">
+            <div className="min-w-0">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_var(--color-accent-primary)]" />
                 <h1 className="font-display text-sm font-black tracking-widest text-cyan-text uppercase">
@@ -497,7 +497,10 @@ ${currentData.threatSummary}`;
 
         {/* Dropzone Container */}
         <GlassPanel 
-          className={`p-4 flex-1 flex flex-col min-h-[400px] relative transition-all duration-300 ${
+          // Bounded. As flex-1 with only a floor this stretched to the column
+          // height — measured 1124px with 874px of empty panel under its
+          // content. A drop target wants to be generous, not unbounded.
+          className={`p-4 flex-1 flex flex-col min-h-[320px] max-h-[560px] relative overflow-hidden transition-all duration-300 ${
             dragActive ? "border-cyan-primary/70 bg-cyan-primary/[0.04]" : "border-border-hairline/20"
           }`}
           // @ts-ignore
