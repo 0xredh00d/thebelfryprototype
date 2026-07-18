@@ -23,7 +23,14 @@ type ColorVar =
   | "--color-green-verified"
   | "--color-text-primary";
 
-type ChannelVar = "--rgb-accent" | "--rgb-primary" | "--rgb-threat" | "--rgb-amber";
+type ChannelVar =
+  | "--rgb-accent"
+  | "--rgb-primary"
+  | "--rgb-threat"
+  | "--rgb-amber"
+  | "--rgb-green"
+  | "--rgb-blue-pale"
+  | "--rgb-waveform";
 
 const cache = new Map<string, string>();
 

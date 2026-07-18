@@ -51,6 +51,9 @@ button:focus, a:focus, input:focus, textarea:focus, select:focus {
      values. */
   --color-green-active: #2fffa8;
   --color-blue-pale: #b3e2e6;
+  /* Tape-head silver. The waveform reads as bright playback trace rather than
+     another accent-coloured readout, per the Arkham tape reference. */
+  --color-waveform: #e8f4f8;
   --color-text-primary: #f5f8f9;
   --color-text-dim: #f5f8f9;
   --color-border-hairline: rgba(112, 162, 168, 0.15);
@@ -1263,6 +1266,7 @@ button:hover, .btn-interactive:hover {
   --rgb-amber: 255 157 46;
   --rgb-green: 47 255 168;
   --rgb-blue-pale: 179 226 230;
+  --rgb-waveform: 232 244 248;
 }
 
 /* WayneTech red — the Gotham Knights console. Near-black chassis, signal
@@ -1280,6 +1284,7 @@ button:hover, .btn-interactive:hover {
   --color-green-verified: #3ee08a;
   --color-green-active: #3ee08a;
   --color-blue-pale: #9fc7d4;
+  --color-waveform: #ffecee;
   --color-text-primary: #fdf4f5;
   --color-text-dim: #fdf4f5;
   --color-border-hairline: rgba(200, 67, 79, 0.18);
@@ -1290,6 +1295,7 @@ button:hover, .btn-interactive:hover {
   --rgb-amber: 255 160 46;
   --rgb-green: 62 224 138;
   --rgb-blue-pale: 159 199 212;
+  --rgb-waveform: 255 236 238;
 }
 
 /* Deep violet — the Gotham Knights menu palette. Cooler and softer than the
@@ -1306,6 +1312,7 @@ button:hover, .btn-interactive:hover {
   --color-green-verified: #5cf2b0;
   --color-green-active: #5cf2b0;
   --color-blue-pale: #b9c8ff;
+  --color-waveform: #eeecff;
   --color-text-primary: #f4f1ff;
   --color-text-dim: #f4f1ff;
   --color-border-hairline: rgba(143, 127, 212, 0.18);
@@ -1316,6 +1323,7 @@ button:hover, .btn-interactive:hover {
   --rgb-amber: 255 179 71;
   --rgb-green: 92 242 176;
   --rgb-blue-pale: 185 200 255;
+  --rgb-waveform: 238 236 255;
 }
 
 /* ---- hud-target: bracketed corner accents on hover/focus ----
