@@ -7,7 +7,8 @@ import Badge from "../../components/ui/Badge";
 import ProgressBar from "../../components/ui/ProgressBar";
 import ScannerAnimation from "../../components/ui/ScannerAnimation";
 import Terminal from "../../components/ui/Terminal";
-import RadialDial, { RadialDialItem } from "../../components/ui/RadialDial";
+import NeuralActivity from "../../components/ui/NeuralActivity";
+import DataWall from "../../components/ui/DataWall";
 import HexCluster from "../../components/ui/HexCluster";
 import AnimatedCounter from "../../components/ui/AnimatedCounter";
 import CorrelationNetwork from "../../components/ui/CorrelationNetwork";
@@ -83,28 +84,20 @@ export default function DashboardPage() {
     const secs = (totalSecs % 60).toString().padStart(2, "0");
     return `${hrs}:${mins}:${secs}`;
   };
+  // The dashboard dossier list is a working list: only cases still open.
+  // Solved and archived records live in Case Files.
+  const activeCases = React.useMemo(
+    () => cases.filter((c) => c.status === "ACTIVE" || c.status === "STALLED"),
+    [cases],
+  );
 
-  const gadgets: RadialDialItem[] = [
-    { id: "batarang", icon: Shield, label: "BATARANG", description: "Intercepts low-power local RF signals" },
-    { id: "sequencer", icon: Lock, label: "SEQUENCER", description: "Overrides lock-system registry grids" },
-    { id: "hacker", icon: Cpu, label: "HACK DEV", description: "Disables local camera and transceiver relays" },
-    { id: "scanner", icon: Fingerprint, label: "SCANNER", description: "Deconstructs physical crime scene residues" },
-    { id: "launcher", icon: Network, label: "LAUNCHER", description: "Calculates coordinate line trajectories" },
-  ];
-
-  const handleGadgetSelect = (item: RadialDialItem) => {
-    addLog(`TACTICAL UPLINK ENGAGED: ${item.label} // ${item.description.toUpperCase()}`, "warning", "BELFRY");
-    if (item.id === "sequencer") {
-      setModule("crypto-lab");
-    } else if (item.id === "hacker") {
-      setModule("encoding-lab");
-    } else if (item.id === "launcher") {
-      setModule("detective-board");
-    }
-  };
 
   // Get active case file details
-  const activeCase = cases.find(c => c.id === activeCaseId) || cases[0];
+  // Fall back to an open case, not just the first record in storage — with
+  // nothing selected this surfaced whichever case happened to be stored first,
+  // which could be archived.
+  const activeCase =
+    cases.find((c) => c.id === activeCaseId) || activeCases[0] || cases[0];
 
   const handleScanTrigger = () => {
     if (!textInput.trim()) {
@@ -165,9 +158,13 @@ export default function DashboardPage() {
       
       {/* Immersive background idle data-flow/grid pulse treatment scoped to Dashboard */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-20">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(47,241,228,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(47,241,228,0.03)_1px,transparent_1px)] bg-[size:32px_32px] animate-[pulse_8s_infinite]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--rgb-accent) / 0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--rgb-accent) / 0.03)_1px,transparent_1px)] bg-[size:32px_32px] animate-[pulse_8s_infinite]" />
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-cyan-primary/5 rounded-full blur-[120px] animate-[pulse_4s_infinite_alternate]" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-red-threat/[0.02] rounded-full blur-[150px] animate-[pulse_6s_infinite_alternate]" />
+        {/* Ambient character field, well behind everything. */}
+        <div className="absolute inset-x-[8%] top-[22%] h-[46%]">
+          <DataWall cell={16} intensity={0.1} />
+        </div>
       </div>
 
       {/* ================= HIGH-TECH DENSE HUD READOUT STRIP ================= */}
@@ -183,7 +180,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="ACTIVE DOSSIERS" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{cases.filter(c => c.status === "ACTIVE").length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{cases.filter(c => c.status === "ACTIVE").length}</span>
               <span className="text-[13px] text-text-dim font-share">/ {cases.length} TOTAL</span>
             </div>
           </div>
@@ -192,7 +189,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="SECURED EVIDENCE" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{evidenceNodes.length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{evidenceNodes.length}</span>
               <span className="text-[13px] text-text-dim font-share">CLUES RECORDED</span>
             </div>
           </div>
@@ -210,7 +207,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="INTEGRITY MATRIX" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">
                 {Math.round(((cases.filter(c => c.status === "SOLVED").length) / (cases.length || 1)) * 100)}%
               </span>
               <span className="text-[13px] text-text-dim font-share">SOLVED RATIO</span>
@@ -221,7 +218,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="ANALYZER BUFFER" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{textInput.length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{textInput.length}</span>
               <span className="text-[13px] text-text-dim font-share">CHARS LOADED</span>
             </div>
           </div>
@@ -242,8 +239,8 @@ export default function DashboardPage() {
         {/* Case File Selector / Dossier Panel */}
         <GlassPanel className="p-4 flex flex-col flex-1" clipSize="md">
           <div className="border-b border-border-hairline/25 pb-2 mb-3 flex items-center justify-between">
-            <h3 className="font-orbitron text-sm font-black tracking-widest text-cyan-text flex items-center">
-              <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
+            <h3 className="font-display text-base font-extrabold tracking-[0.18em] text-white uppercase flex items-center">
+              <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
               <ShinyText text="CASE DOSSIER LIST" speed={5} />
             </h3>
             {/* Uplink diagnostics */}
@@ -258,7 +255,7 @@ export default function DashboardPage() {
 
           {/* List of Dossiers */}
           <div className="space-y-1.5 flex-1 overflow-y-auto max-h-[180px] xl:max-h-none scrollbar-thin scrollbar-thumb-cyan-dim/20 pr-1">
-            {cases.length === 0 ? (
+            {activeCases.length === 0 ? (
               <button
                 onClick={() => setModule("case-files")}
                 onMouseEnter={() => playHoverBlip()}
@@ -272,20 +269,20 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Database className="w-6 h-6 text-cyan-dim/60 group-hover:text-cyan-primary transition-colors relative z-10" />
-                <span className="font-orbitron text-[13px] font-black tracking-widest text-text-dim uppercase relative z-10">
-                  NO DOSSIERS ON FILE
+                <span className="font-display text-[13px] font-black tracking-widest text-text-dim uppercase relative z-10">
+                  NO ACTIVE DOSSIERS
                 </span>
                 <span className="font-share text-[12px] text-text-dim/60 tracking-wide uppercase relative z-10 leading-relaxed">
-                  Archive standing by — open Case Files to register the first record
+                  No open cases — register or reopen one in Case Files
                 </span>
                 <span className="font-share text-[12px] text-cyan-primary/70 tracking-[0.2em] uppercase mt-1 relative z-10 group-hover:text-cyan-primary transition-colors">
                   › INITIALIZE ARCHIVE
                 </span>
               </button>
             ) : (
-              cases.map((c) => {
+              activeCases.map((c) => {
                 const isSelected = c.id === activeCaseId;
-                const dotColor = c.status === "ACTIVE" ? "bg-red-threat" : c.status === "SOLVED" ? "bg-green-verified" : "bg-cyan-primary";
+                const dotColor = c.status === "ACTIVE" ? "bg-green-active" : c.status === "STALLED" ? "bg-amber-alert" : "bg-cyan-primary";
                 return (
                   <button
                     key={c.id}
@@ -293,7 +290,7 @@ export default function DashboardPage() {
                     onMouseEnter={() => playHoverBlip()}
                     className={`hud-target w-full text-left p-2.5 border transition-all duration-300 flex items-center justify-between relative overflow-hidden group ${
                       isSelected
-                        ? "bg-cyan-primary/[0.06] border-cyan-primary text-text-primary shadow-[0_0_8px_rgba(47,241,228,0.15)]"
+                        ? "bg-cyan-primary/[0.06] border-cyan-primary text-text-primary shadow-[0_0_8px_rgb(var(--rgb-accent) / 0.15)]"
                         : "bg-bg-void/40 border-border-hairline/15 text-text-dim hover:border-cyan-primary/35 hover:bg-cyan-primary/[0.02]"
                     }`}
                     style={{
@@ -301,7 +298,7 @@ export default function DashboardPage() {
                     }}
                   >
                     {/* Subtle scan-line overlay on hover */}
-                    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(47,241,228,0)_50%,rgba(47,241,228,0.06)_50%)] bg-[size:100%_4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgb(var(--rgb-accent) / 0)_50%,rgb(var(--rgb-accent) / 0.06)_50%)] bg-[size:100%_4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     
                     {/* Corner reticle highlight on active selection */}
                     {isSelected && (
@@ -354,7 +351,7 @@ export default function DashboardPage() {
 
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-orbitron text-[13px] font-black text-text-primary tracking-widest uppercase flex items-center min-w-0" title={activeCase.title} key={activeCase.id}>
+                  <h4 className="font-display text-[13px] font-black text-text-primary tracking-widest uppercase flex items-center min-w-0" title={activeCase.title} key={activeCase.id}>
                     <span className="truncate">{activeCase.title}</span>
                   </h4>
                   <p className="font-share text-[13px] text-text-dim/60 uppercase">
@@ -414,8 +411,8 @@ export default function DashboardPage() {
           {/* Top border header banner */}
           <div className="border-b border-border-hairline/25 pb-3 mb-4 flex justify-between items-center relative z-10">
             <div>
-              <h2 className="font-orbitron text-base font-black tracking-widest text-cyan-text flex items-center uppercase animate-data-assemble">
-                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
+              <h2 className="font-display text-base font-black tracking-widest text-cyan-text flex items-center uppercase animate-data-assemble">
+                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
                 <ShinyText text="FORENSIC SCANNER // ANALYZE ANY EVIDENCE" speed={6} />
               </h2>
               <p className="text-xs font-share text-text-dim tracking-wide uppercase mt-0.5">
@@ -495,7 +492,7 @@ export default function DashboardPage() {
               className="mt-4 relative z-10 flex items-center gap-2.5 px-3 py-2.5 border border-amber-alert/60 bg-amber-alert/[0.06] text-amber-alert overflow-hidden animate-stagger-in file-threat-pulse"
               style={{ clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}
             >
-              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,157,46,0.06)_0,rgba(255,157,46,0.06)_8px,transparent_8px,transparent_16px)] pointer-events-none" />
+              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgb(var(--rgb-amber) / 0.06)_0,rgb(var(--rgb-amber) / 0.06)_8px,transparent_8px,transparent_16px)] pointer-events-none" />
               <ShieldAlert className="w-4 h-4 shrink-0 amber-glow animate-pulse relative z-10" />
               <span className="font-share text-[13px] tracking-widest uppercase font-bold amber-glow relative z-10">{scanAlert}</span>
               <span className="ml-auto flex items-end gap-0.5 h-3 relative z-10">
@@ -511,21 +508,49 @@ export default function DashboardPage() {
             <button
               onClick={handleScanTrigger}
               disabled={isScanning}
-              className={`hud-target ${!isScanning && !textInput.trim() ? "hud-target-amber" : ""} flex-1 font-orbitron font-black text-xs uppercase tracking-widest py-3 border transition-all duration-300 relative overflow-hidden flex items-center justify-center space-x-2 ${
+              className={`tablet-btn hud-target flex-1 text-sm py-3 relative flex items-center justify-center space-x-2 ${
                 isScanning
-                  ? "bg-cyan-primary/5 border-cyan-primary/30 text-cyan-dim cursor-not-allowed"
+                  ? "tablet-active cursor-not-allowed"
                   : textInput.trim()
-                  ? "bg-cyan-primary/10 border-cyan-primary text-cyan-primary hover:bg-cyan-primary hover:text-bg-void hover:shadow-[0_0_15px_rgba(47,241,228,0.5)] cursor-pointer"
-                  : "bg-bg-void/40 border-amber-alert/25 text-amber-alert/70 hover:border-amber-alert/60 hover:text-amber-alert cursor-pointer"
+                  ? "cursor-pointer"
+                  : "cursor-pointer"
               }`}
-              style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)"
-              }}
+              // Amber frame when there is nothing to scan yet, cyan once armed,
+              // teal while running — the reference's three-state register.
+              style={
+                {
+                  "--frame-color": isScanning
+                    ? "#00ffbe"
+                    : textInput.trim()
+                    ? "var(--color-accent-primary)"
+                    : "var(--color-amber-alert)",
+                } as React.CSSProperties
+              }
             >
               <Search className="w-4 h-4" />
               <span>{isScanning ? `ANALYZING EVIDENCE (${scanProgress}%)` : "INITIALIZE FORENSIC SCAN"}</span>
             </button>
           </div>
+
+          {/* IDLE FILL — the scanner panel stretches to match the taller side
+              columns, so with no result and no scan running its lower half was
+              simply void. At 2560 wide that gap is most of the panel. This
+              holds the space with the standby readout and machine chatter
+              instead of nothing, and yields to the result panel below. */}
+          {!scannedEvidence && !isScanning && (
+            <div className="mt-4 flex-1 min-h-0 relative border border-border-hairline/15 bg-bg-void/25 overflow-hidden">
+              <DataWall intensity={0.13} />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center gap-2 px-6">
+                <span className="font-display text-sm font-extrabold tracking-[0.18em] text-white/70 uppercase">
+                  Analyzer idle
+                </span>
+                <span className="font-share text-[12px] tracking-wide text-text-dim/60 uppercase max-w-md leading-relaxed">
+                  Paste an intercept above or drop a file to begin. Results and
+                  candidate matches will appear here.
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* SCANNED EVIDENCE RESULT PANEL (Rendered after successful scan) */}
           {scannedEvidence && !isScanning && (
@@ -581,7 +606,7 @@ export default function DashboardPage() {
                 <div className="col-span-2">
                   <span className="text-text-dim block uppercase">DIAGNOSTIC EXTRAPOLATION:</span>
                   <p className="text-text-primary/95 leading-normal mt-0.5">
-                    <DecryptText text={scannedEvidence.notes} trigger={scannedEvidence?.id} duration={1200} />
+                    <DecryptText text={scannedEvidence.notes} trigger={scannedEvidence?.id} duration={1200} silent />
                   </p>
                 </div>
               </div>
@@ -656,8 +681,8 @@ export default function DashboardPage() {
         {/* PATTERN ANALYSIS Detector Heuristics Panel */}
         <GlassPanel className="p-4 flex flex-col flex-1" clipSize="md">
           <div className="border-b border-border-hairline/25 pb-2 mb-3 flex items-center justify-between">
-            <h3 className="font-orbitron text-sm font-black tracking-widest text-cyan-text flex items-center">
-              <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
+            <h3 className="font-display text-base font-extrabold tracking-[0.18em] text-white uppercase flex items-center">
+              <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
               <ShinyText text="PATTERN HEURISTICS" speed={5} />
             </h3>
             <div className="flex items-end space-x-0.5 h-3">
@@ -683,7 +708,7 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-start relative z-10">
                     <span className="font-chakra text-[13px] font-extrabold tracking-wider text-text-primary uppercase flex items-center">
                       <Hash className="w-3.5 h-3.5 mr-1 text-cyan-dim" />
-                      <DecryptText text={result.name} trigger={scannedEvidence?.id} />
+                      <DecryptText text={result.name} trigger={scannedEvidence?.id} silent />
                     </span>
                     <div className="flex items-center space-x-1">
                       {result.isMatch && (
@@ -700,7 +725,7 @@ export default function DashboardPage() {
                   </div>
 
                   <p className="text-[13px] leading-relaxed text-text-dim mt-1.5 font-share italic relative z-10">
-                    "<DecryptText text={result.details} trigger={scannedEvidence?.id} duration={1000} />"
+                    "<DecryptText text={result.details} trigger={scannedEvidence?.id} duration={1000} silent />"
                   </p>
                 </div>
               ))
@@ -744,17 +769,24 @@ export default function DashboardPage() {
           </div>
         </GlassPanel>
 
-        {/* TACTICAL GADGET MATRIX */}
-        <GlassPanel className="p-4 flex flex-col justify-between" clipSize="md" showCornerTicks={true}>
-          <div className="border-b border-border-hairline/25 pb-1 mb-2">
-            <h3 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text flex items-center">
-              <span className="w-1 h-2 bg-cyan-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_#2ff1e4]" />
-              TACTICAL GADGET MATRIX
+        {/* LATTICE — ornamental, cursor-reactive. Replaced a "gadget matrix" of
+            buttons that implied capabilities the app does not have; the three
+            routes it exposed are all reachable from the sidebar. */}
+        <GlassPanel className="p-4 flex flex-col justify-between amber-tab" clipSize="md" showCornerTicks={true}>
+          <div className="border-b border-border-hairline/25 pb-1 mb-2 flex items-baseline justify-between">
+            <h3 className="font-display text-sm font-extrabold tracking-[0.18em] text-white flex items-center uppercase">
+              <span className="w-1 h-2 bg-accent-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_var(--color-accent-primary)]" />
+              Neural Activity
             </h3>
+            <span className="font-share text-[12px] tracking-widest text-text-dim/45 uppercase">
+              Inference field
+            </span>
           </div>
 
-          <div className="flex-1 flex justify-center py-2">
-            <RadialDial items={gadgets} onSelect={handleGadgetSelect} />
+          {/* `relative` is required — NeuralActivity anchors itself with
+              absolute inset-0 (see the note in that component). */}
+          <div className="relative flex-1 my-2 min-h-[170px]">
+            <NeuralActivity />
           </div>
         </GlassPanel>
 

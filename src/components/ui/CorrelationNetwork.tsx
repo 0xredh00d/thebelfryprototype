@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { themeColor, themeRgba } from "../../lib/themeColors";
 
 interface Node {
   x: number;
@@ -79,10 +80,10 @@ export default function CorrelationNetwork({
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(47, 241, 228, 0.85)";
+        ctx.fillStyle = themeRgba("--rgb-accent", 0.85);
         ctx.fill();
         ctx.shadowBlur = 4;
-        ctx.shadowColor = "#2ff1e4";
+        ctx.shadowColor = themeColor("--color-accent-primary");
       });
 
       // Draw connections

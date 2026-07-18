@@ -7,6 +7,7 @@ import { detectHiddenMessageInFile, loadImageAsCanvas } from "../lib/tools/image
 import { detectMorse, detectDTMF } from "../lib/audioAnalysis";
 import { getAudioContext } from "../lib/soundEngine";
 import type { KnightId } from "../lib/identity";
+import { applyTheme, isThemeId, DEFAULT_THEME, type ThemeId } from "../lib/themes";
 import {
   migrateLegacyGuestBoard,
   storageFor,
@@ -214,6 +215,10 @@ interface AppState {
   deleteNote: (id: string) => void;
   /** Returns whether the note was pinned, so the caller can confirm it. */
   sendNoteToBoard: (id: string) => boolean;
+
+  // Appearance
+  theme: ThemeId;
+  setTheme: (theme: ThemeId) => void;
 
   // Audio settings
   masterVolume: number;
@@ -437,9 +442,16 @@ export const useAppStore = create<AppState>()(
 
           const activeCaseId = get().activeCaseId;
           const stillExists = snapshot.cases.some((c) => c.id === activeCaseId);
+          // With no valid selection, open on a case that is still open. Falling
+          // back to cases[0] surfaced whichever record storage happened to
+          // return first, which could be solved or archived.
+          const firstOpen =
+            snapshot.cases.find((c) => c.status === "ACTIVE") ??
+            snapshot.cases.find((c) => c.status === "STALLED") ??
+            snapshot.cases[0];
           set({
             ...snapshot,
-            activeCaseId: stillExists ? activeCaseId : snapshot.cases[0]?.id ?? null,
+            activeCaseId: stillExists ? activeCaseId : firstOpen?.id ?? null,
             boardStatus: "ready",
           });
         } catch (err) {
@@ -460,6 +472,7 @@ export const useAppStore = create<AppState>()(
       cases: [],
       evidenceNodes: [],
       evidenceConnections: [],
+      theme: DEFAULT_THEME,
       masterVolume: 0.4,
       isMuted: false,
       ambientEnabled: true,
@@ -872,6 +885,10 @@ export const useAppStore = create<AppState>()(
       setAmbientEnabled: (enabled) => {
         set({ ambientEnabled: enabled });
         setAmbientEnabled(enabled);
+      },
+      setTheme: (theme) => {
+        set({ theme });
+        applyTheme(theme);
       }
     }),
     {
@@ -891,7 +908,8 @@ export const useAppStore = create<AppState>()(
         notes: state.notes,
         masterVolume: state.masterVolume,
         isMuted: state.isMuted,
-        ambientEnabled: state.ambientEnabled
+        ambientEnabled: state.ambientEnabled,
+        theme: state.theme
       })
     }
   )
@@ -909,6 +927,9 @@ const initialState = useAppStore.getState();
 setSoundVolume(initialState.masterVolume);
 setSoundMuted(initialState.isMuted);
 setAmbientEnabled(initialState.ambientEnabled);
+// Paint the persisted theme before first render so there is no flash of the
+// default palette on reload.
+applyTheme(isThemeId(initialState.theme) ? initialState.theme : DEFAULT_THEME);
 
 /**
  * Bind a board on boot.

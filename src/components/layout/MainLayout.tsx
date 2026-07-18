@@ -1,8 +1,11 @@
 import React from "react";
+import { useAppStore } from "../../store/appStore";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import StatusBar from "./StatusBar";
 import HexagonBackground from "../ui/HexagonBackground";
+import AmbientTelemetry from "../ui/AmbientTelemetry";
+import HoneycombField from "../ui/HoneycombField";
 import NotesPanel from "../ui/NotesPanel";
 
 interface MainLayoutProps {
@@ -10,6 +13,10 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  // The ambient field leans in while a forensic scan is running, so the console
+  // visibly reacts to work rather than idling at one level.
+  const isScanning = useAppStore((s) => s.isScanning);
+
   return (
     <div className="relative w-screen h-screen flex flex-col bg-bg-void text-text-primary overflow-hidden font-chakra">
       <div className="bat-bg"></div>
@@ -17,6 +24,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
       
       {/* Dynamic Hexagon background with pulsing effects */}
       <HexagonBackground />
+
+      {/* Tessellated honeycomb lattice framing the workspace */}
+      <HoneycombField />
+
+      {/* Ambient glyph telemetry drifting in the left/right margins */}
+      <AmbientTelemetry active={isScanning} />
 
       {/* Immersive HUD Grids and Edge vignettes */}
       <div className="absolute inset-0 hud-bg-grid opacity-100 z-0 pointer-events-none" />
@@ -28,10 +41,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </div>
 
       {/* Decorative top visual scanline band with two-layered neon cyan glow */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-cyan-primary/20 shadow-[0_0_6px_#00f3ff,0_0_16px_rgba(255,255,255,0.4)] z-50 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-cyan-primary/20 shadow-[0_0_6px_var(--color-accent-primary),0_0_16px_rgba(255,255,255,0.4)] z-50 pointer-events-none" />
       
       {/* Decorative bottom visual scanline band with two-layered neon cyan glow matching the top */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-primary/20 shadow-[0_0_6px_#00f3ff,0_0_16px_rgba(255,255,255,0.4)] z-50 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-primary/20 shadow-[0_0_6px_var(--color-accent-primary),0_0_16px_rgba(255,255,255,0.4)] z-50 pointer-events-none" />
 
       {/* Primary Layout Frame */}
       <div className="flex-1 flex overflow-hidden z-10">

@@ -458,11 +458,11 @@ ${currentData.threatSummary}`;
       onDrop={handleDrop}
     >
       {/* Subtle global binary rain in background */}
-      <BinaryRain density={15} color="rgba(47, 241, 228, 0.05)" className="fixed inset-0 -z-10" />
+      <BinaryRain density={15} color="rgb(var(--rgb-accent) / 0.05)" className="fixed inset-0 -z-10" />
       {dragActive && (
         <div className="fixed inset-0 z-[999] bg-bg-void/80 backdrop-blur-sm flex items-center justify-center pointer-events-none animate-fade-in">
           <div className="border-2 border-dashed border-cyan-primary bg-cyan-primary/5 px-12 py-10 flex flex-col items-center space-y-3">
-            <span className="font-orbitron text-sm font-black tracking-[0.2em] text-cyan-primary uppercase">
+            <span className="font-display text-sm font-black tracking-[0.2em] text-cyan-primary uppercase">
               RELEASE TO ANALYZE
             </span>
             <span className="font-share text-[13px] text-text-dim uppercase tracking-widest">
@@ -477,11 +477,11 @@ ${currentData.threatSummary}`;
         
         {/* Header Block */}
         <GlassPanel className="p-4 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex justify-between items-start gap-4">
+            <div className="min-w-0">
               <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_#2ff1e4]" />
-                <h1 className="font-orbitron text-sm font-black tracking-widest text-cyan-text uppercase">
+                <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_var(--color-accent-primary)]" />
+                <h1 className="font-display text-sm font-black tracking-widest text-cyan-text uppercase">
                   FILE SECTOR INTEGRITY LAB
                 </h1>
               </div>
@@ -497,7 +497,10 @@ ${currentData.threatSummary}`;
 
         {/* Dropzone Container */}
         <GlassPanel 
-          className={`p-4 flex-1 flex flex-col min-h-[400px] relative transition-all duration-300 ${
+          // Bounded. As flex-1 with only a floor this stretched to the column
+          // height — measured 1124px with 874px of empty panel under its
+          // content. A drop target wants to be generous, not unbounded.
+          className={`p-4 flex-1 flex flex-col min-h-[320px] max-h-[560px] relative overflow-hidden transition-all duration-300 ${
             dragActive ? "border-cyan-primary/70 bg-cyan-primary/[0.04]" : "border-border-hairline/20"
           }`}
           // @ts-ignore
@@ -513,12 +516,12 @@ ${currentData.threatSummary}`;
           {/* Scanner Overlay */}
           {isScanning && (
             <div className="absolute inset-0 bg-cyan-primary/[0.02] border border-cyan-primary/20 pointer-events-none overflow-hidden z-20">
-              <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_#2ff1e4] animate-scanline-vertical" />
+              <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_var(--color-accent-primary)] animate-scanline-vertical" />
             </div>
           )}
 
           <div className="border-b border-border-hairline/20 pb-2 mb-3 flex justify-between items-center">
-            <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
+            <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
               <Binary className="w-3.5 h-3.5 mr-2 text-cyan-primary animate-hex-pulse-flicker" />
               BINARY BUFFER PORT
             </h3>
@@ -552,7 +555,7 @@ ${currentData.threatSummary}`;
               <div className="w-14 h-14 rounded-full border border-cyan-primary/25 flex items-center justify-center mb-3 bg-bg-void relative group-hover:scale-105 group-hover:border-cyan-primary/55 transition-all duration-300">
                 <Upload className="w-6 h-6 text-cyan-primary/70 group-hover:text-cyan-primary" />
               </div>
-              <span className="font-orbitron text-xs font-black tracking-widest text-cyan-text group-hover:text-white transition-colors">
+              <span className="font-display text-xs font-black tracking-widest text-cyan-text group-hover:text-white transition-colors">
                 DROP ANY FILE VESSEL HERE
               </span>
               <span className="text-[13px] text-text-dim uppercase tracking-widest font-share mt-1">
@@ -637,7 +640,7 @@ ${currentData.threatSummary}`;
                 <button
                   disabled={isScanning}
                   onClick={triggerForensicScan}
-                  className="hud-target w-full py-3 bg-cyan-primary text-bg-void hover:bg-white hover:shadow-[0_0_20px_rgba(47,241,228,0.6)] active:scale-[0.98] transition-all duration-200 text-xs font-black tracking-widest font-orbitron uppercase disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2 relative z-10"
+                  className="hud-target w-full py-3 bg-cyan-primary text-bg-void hover:bg-white hover:shadow-[0_0_20px_rgb(var(--rgb-accent) / 0.6)] active:scale-[0.98] transition-all duration-200 text-xs font-black tracking-widest font-display uppercase disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2 relative z-10"
                   style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 0 100%)" }}
                 >
                   <Cpu className={`w-4 h-4 text-bg-void ${isScanning ? 'animate-radar-sweep' : ''}`} />
@@ -662,7 +665,7 @@ ${currentData.threatSummary}`;
               <Binary className="w-8 h-8 text-cyan-primary/40" />
               <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-cyan-primary rounded-full animate-ping-cyan" />
             </div>
-            <h2 className="font-orbitron text-sm font-black tracking-widest text-cyan-text uppercase">
+            <h2 className="font-display text-sm font-black tracking-widest text-cyan-text uppercase">
               AWAITING BINARY CARRIER TARGET
             </h2>
             <p className="text-xs text-text-dim font-share uppercase tracking-widest max-w-sm mt-1.5 leading-relaxed">
@@ -677,8 +680,8 @@ ${currentData.threatSummary}`;
             <GlassPanel className="p-4 flex flex-col min-h-[300px] flex-1" clipSize="md">
               <div className="border-b border-border-hairline/20 pb-2 mb-3.5 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
-                  <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text uppercase">
+                  <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
+                  <h3 className="font-display text-xs font-black tracking-widest text-cyan-text uppercase">
                     HEXADECIMAL SECTOR MAP (OFFSET / BYTES / CHARS)
                   </h3>
                 </div>
@@ -692,7 +695,7 @@ ${currentData.threatSummary}`;
                 /* Pre-Scan State Awaiting Trigger */
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-20 border border-dashed border-border-hairline/15 bg-bg-void/25">
                   <TerminalIcon className="w-10 h-10 text-cyan-primary/20 animate-hex-pulse-flicker mb-3" />
-                  <span className="font-orbitron text-xs font-bold text-text-dim uppercase tracking-wider">
+                  <span className="font-display text-xs font-bold text-text-dim uppercase tracking-wider">
                     FILE BUFFER MOUNTED - AWAITING INSPECTION
                   </span>
                   <p className="text-[13px] text-text-dim uppercase tracking-widest font-share max-w-xs mt-1 leading-relaxed">
@@ -717,7 +720,7 @@ ${currentData.threatSummary}`;
                     )}
                     {isScanning && (
                       <div className="absolute inset-0 pointer-events-none z-10 mix-blend-screen bg-cyan-primary/[0.01]">
-                        <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_#2ff1e4] animate-scanline-vertical" />
+                        <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_var(--color-accent-primary)] animate-scanline-vertical" />
                       </div>
                     )}
                     {currentData.hexData.map((row, idx) => {
@@ -727,11 +730,11 @@ ${currentData.threatSummary}`;
                         <div className="col-span-2 text-cyan-text font-bold tracking-wider">{row.offset}</div>
                         
                         {/* Strict monospace spacing with font-share */}
-                        <div className={`col-span-7 text-text-primary text-center tracking-wider font-medium font-share ${scanComplete && isRelevant ? 'animate-byte-flicker text-cyan-primary text-shadow-[0_0_8px_#2ff1e4]' : ''}`}>
+                        <div className={`col-span-7 text-text-primary text-center tracking-wider font-medium font-share ${scanComplete && isRelevant ? 'animate-byte-flicker text-cyan-primary text-shadow-[0_0_8px_var(--color-accent-primary)]' : ''}`}>
                           {row.hex}
                         </div>
                         
-                        <div className={`col-span-3 text-right font-bold truncate font-share ${scanComplete && isRelevant ? 'animate-byte-flicker text-cyan-primary text-shadow-[0_0_8px_#2ff1e4]' : 'text-cyan-primary/80'}`}>
+                        <div className={`col-span-3 text-right font-bold truncate font-share ${scanComplete && isRelevant ? 'animate-byte-flicker text-cyan-primary text-shadow-[0_0_8px_var(--color-accent-primary)]' : 'text-cyan-primary/80'}`}>
                           {row.ascii}
                         </div>
                       </div>
@@ -771,7 +774,7 @@ ${currentData.threatSummary}`;
                   <div>
                     <div className="border-b border-border-hairline/15 pb-1.5 mb-2.5 flex items-center">
                       <Search className="w-3.5 h-3.5 text-cyan-primary mr-1.5" />
-                      <h4 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text uppercase">
+                      <h4 className="font-display text-[13px] font-black tracking-widest text-cyan-text uppercase">
                         EXTRACTABLE ASCII CHARACTER STRINGS (LENGTH &gt;= 4)
                       </h4>
                     </div>
@@ -820,7 +823,7 @@ ${currentData.threatSummary}`;
                     <div className="border-b border-border-hairline/15 pb-1.5 mb-2.5 flex items-center justify-between">
                       <div className="flex items-center">
                         <Binary className="w-3.5 h-3.5 text-amber-alert mr-1.5" />
-                        <h4 className="font-orbitron text-[13px] font-black tracking-widest text-amber-alert uppercase">
+                        <h4 className="font-display text-[13px] font-black tracking-widest text-amber-alert uppercase">
                           EMBEDDED FILE CARVING
                         </h4>
                       </div>
@@ -893,7 +896,7 @@ ${currentData.threatSummary}`;
                   )}
                   <div className="border-b border-border-hairline/15 pb-1.5 mb-2.5 flex items-center">
                     <Database className="w-3.5 h-3.5 text-cyan-primary mr-1.5" />
-                    <h4 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text uppercase">
+                    <h4 className="font-display text-[13px] font-black tracking-widest text-cyan-text uppercase">
                       RECORD INTEGRATION
                     </h4>
                   </div>

@@ -12,6 +12,18 @@ interface DecryptTextProps {
 
 const DEFAULT_SCRAMBLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*<>/\\";
 
+/**
+ * Content already revealed, keyed by trigger + text.
+ *
+ * Module scope on purpose: it has to outlive the component. Switching modules
+ * unmounts the page, so returning to it remounted every DecryptText and
+ * replayed the scramble over unchanged data — a stale scan result re-animated
+ * (and re-chimed) as though a fresh scan had just completed, which read as the
+ * app inventing a result out of nowhere. The decrypt should fire when data
+ * arrives, not every time you look at it.
+ */
+const revealed = new Set<string>();
+
 export default function DecryptText({
   text,
   duration = 900,
@@ -30,6 +42,15 @@ export default function DecryptText({
 
     const chars = text.split("");
     const totalChars = chars.length;
+
+    // Already seen this exact content for this trigger — show it settled and
+    // skip the animation and the sound entirely.
+    const revealKey = `${String(trigger)}::${text}`;
+    if (revealed.has(revealKey)) {
+      setDisplayChars(chars.map((char) => ({ char, resolved: true })));
+      return;
+    }
+    revealed.add(revealKey);
 
     // Calculate individual lock times (in ms) for each character position
     const lockTimes = chars.map((char, index) => {
@@ -56,45 +77,57 @@ export default function DecryptText({
     let animationFrameId: number;
     playDecypheringLoop();
     let hasResolved = false;
+    let lastPaint = 0;
+
+    const settle = () => {
+      if (hasResolved) return;
+      hasResolved = true;
+      // Guarantee the final state regardless of how the loop ended.
+      setDisplayChars(chars.map((char) => ({ char, resolved: true })));
+      stopDecypheringLoop();
+      if (!silent) playSuccessChime();
+    };
 
     const tick = () => {
       const elapsed = performance.now() - startTime;
 
-      const updated = chars.map((char, index) => {
-        if (char === " ") {
-          return { char: " ", resolved: true };
-        }
-        if (elapsed >= lockTimes[index]) {
-          return { char, resolved: true };
-        }
-        const randomChar = scrambleSet[Math.floor(Math.random() * scrambleSet.length)];
-        return { char: randomChar, resolved: false };
-      });
-
-      setDisplayChars(updated);
-
-      if (elapsed < maxLockTime) {
-        animationFrameId = requestAnimationFrame(tick);
-      } else {
-        // Final fallback to ensure all characters are perfectly locked
-        setDisplayChars(chars.map((char) => ({ char, resolved: true })));
-        if (!hasResolved) {
-          hasResolved = true;
-          stopDecypheringLoop();
-          if (!silent) {
-            playSuccessChime();
-          }
-        }
+      if (elapsed >= maxLockTime) {
+        settle();
+        return;
       }
+
+      // Repaint at ~24fps rather than every frame. The scramble is illegible
+      // either way, but at 60fps this pushed a setState per frame per instance
+      // — and the dashboard mounts one per result name and per details string,
+      // so a multi-result scan was driving hundreds of React renders a second.
+      if (elapsed - lastPaint >= 42) {
+        lastPaint = elapsed;
+        setDisplayChars(
+          chars.map((char, index) => {
+            if (char === " ") return { char: " ", resolved: true };
+            if (elapsed >= lockTimes[index]) return { char, resolved: true };
+            const randomChar = scrambleSet[Math.floor(Math.random() * scrambleSet.length)];
+            return { char: randomChar, resolved: false };
+          }),
+        );
+      }
+
+      animationFrameId = requestAnimationFrame(tick);
     };
 
     animationFrameId = requestAnimationFrame(tick);
 
+    // Backstop. requestAnimationFrame does not run in a backgrounded tab, so a
+    // purely rAF-driven settle left the text scrambled forever if the user
+    // switched away mid-decrypt — it never recovered on return.
+    const backstop = setTimeout(settle, maxLockTime + 120);
+
     return () => {
       cancelAnimationFrame(animationFrameId);
+      clearTimeout(backstop);
       stopDecypheringLoop();
     };
-  }, [text, duration, scrambleSet, trigger]);
+  }, [text, duration, scrambleSet, trigger, silent]);
 
   return (
     <span className={`font-mono inline ${className}`} id="decrypt-scramble-wrapper">
