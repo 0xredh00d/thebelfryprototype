@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Saira+Condensed:wght@600;700;800&display=swap');
 @keyframes breathing {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -50,6 +50,10 @@ button:focus, a:focus, input:focus, textarea:focus, select:focus {
   --color-text-dim: #f5f8f9;
   --color-border-hairline: rgba(112, 162, 168, 0.15);
 
+  /* Heavy condensed grotesque for panel titles, buttons and stat labels — the
+     Arkham-tablet register. Orbitron stays in place everywhere else; this is
+     scoped to chrome, not a global display swap. */
+  --font-display: "Saira Condensed", "Chakra Petch", sans-serif;
   --font-orbitron: "Orbitron", sans-serif;
   --font-chakra: "Chakra Petch", sans-serif;
   --font-share: "Share Tech Mono", monospace;
@@ -1097,4 +1101,118 @@ button:hover, .btn-interactive:hover {
     transform: none;
   }
   .power-sweep::after { display: none; }
+}
+
+/* =====================================================================
+   ARKHAM TABLET CHROME
+   Button and panel treatment modelled on the Arkham VR dossier tablet:
+   bracketed corner frames, a bright outline that fills on hover, a teal
+   ACTIVE register, and amber corner markers used sparingly as accents.
+   ===================================================================== */
+
+.font-display { font-family: var(--font-display); }
+
+/* ---- Bracketed frame: four corner rules drawn just outside the element ---- */
+.tablet-frame {
+  position: relative;
+}
+.tablet-frame::before,
+.tablet-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: var(--frame-color, var(--color-accent-primary));
+  opacity: 0.85;
+  transition: opacity 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+.tablet-frame::before {
+  top: -2px;
+  left: -2px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.tablet-frame::after {
+  bottom: -2px;
+  right: -2px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+.tablet-frame:hover::before,
+.tablet-frame:hover::after {
+  width: 16px;
+  height: 16px;
+  opacity: 1;
+}
+
+/* ---- Primary action button ---- */
+.tablet-btn {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 243, 255, 0.10) 0%,
+    rgba(0, 243, 255, 0.03) 100%
+  );
+  border: 1px solid rgba(0, 243, 255, 0.45);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.tablet-btn:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 243, 255, 0.28) 0%,
+    rgba(0, 243, 255, 0.12) 100%
+  );
+  border-color: var(--color-accent-primary);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(0, 243, 255, 0.35), inset 0 0 12px rgba(0, 243, 255, 0.15);
+}
+.tablet-btn:active:not(:disabled) { transform: translateY(1px); }
+.tablet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- ACTIVE register: the teal filled state from the reference ---- */
+.tablet-active {
+  color: #7fffd6;
+  background: rgba(0, 255, 190, 0.10);
+  border: 1px solid rgba(0, 255, 190, 0.55);
+  box-shadow: inset 0 0 14px rgba(0, 255, 190, 0.12), 0 0 10px rgba(0, 255, 190, 0.18);
+}
+
+/* ---- Amber corner marker: a small folded tab, used sparingly ---- */
+.amber-tab { position: relative; }
+.amber-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  border-top: 9px solid var(--color-amber-alert);
+  border-right: 9px solid transparent;
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tablet-frame::before,
+  .tablet-frame::after,
+  .tablet-btn { transition: none; }
+}
+
+/* ---- Hex lattice click ripple ---- */
+@keyframes hex-lattice-ripple {
+  from { r: 4px; opacity: 0.75; }
+  to   { r: 96px; opacity: 0; }
+}
+.hex-lattice-ripple {
+  animation: hex-lattice-ripple 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hex-lattice-ripple { animation-duration: 1ms; }
 }

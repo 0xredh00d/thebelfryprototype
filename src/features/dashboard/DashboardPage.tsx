@@ -7,7 +7,7 @@ import Badge from "../../components/ui/Badge";
 import ProgressBar from "../../components/ui/ProgressBar";
 import ScannerAnimation from "../../components/ui/ScannerAnimation";
 import Terminal from "../../components/ui/Terminal";
-import RadialDial, { RadialDialItem } from "../../components/ui/RadialDial";
+import HexLattice from "../../components/ui/HexLattice";
 import HexCluster from "../../components/ui/HexCluster";
 import AnimatedCounter from "../../components/ui/AnimatedCounter";
 import CorrelationNetwork from "../../components/ui/CorrelationNetwork";
@@ -82,25 +82,6 @@ export default function DashboardPage() {
     const mins = Math.floor((totalSecs % 3600) / 60).toString().padStart(2, "0");
     const secs = (totalSecs % 60).toString().padStart(2, "0");
     return `${hrs}:${mins}:${secs}`;
-  };
-
-  const gadgets: RadialDialItem[] = [
-    { id: "batarang", icon: Shield, label: "BATARANG", description: "Intercepts low-power local RF signals" },
-    { id: "sequencer", icon: Lock, label: "SEQUENCER", description: "Overrides lock-system registry grids" },
-    { id: "hacker", icon: Cpu, label: "HACK DEV", description: "Disables local camera and transceiver relays" },
-    { id: "scanner", icon: Fingerprint, label: "SCANNER", description: "Deconstructs physical crime scene residues" },
-    { id: "launcher", icon: Network, label: "LAUNCHER", description: "Calculates coordinate line trajectories" },
-  ];
-
-  const handleGadgetSelect = (item: RadialDialItem) => {
-    addLog(`TACTICAL UPLINK ENGAGED: ${item.label} // ${item.description.toUpperCase()}`, "warning", "BELFRY");
-    if (item.id === "sequencer") {
-      setModule("crypto-lab");
-    } else if (item.id === "hacker") {
-      setModule("encoding-lab");
-    } else if (item.id === "launcher") {
-      setModule("detective-board");
-    }
   };
 
   // Get active case file details
@@ -183,7 +164,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="ACTIVE DOSSIERS" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{cases.filter(c => c.status === "ACTIVE").length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{cases.filter(c => c.status === "ACTIVE").length}</span>
               <span className="text-[13px] text-text-dim font-share">/ {cases.length} TOTAL</span>
             </div>
           </div>
@@ -192,7 +173,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="SECURED EVIDENCE" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{evidenceNodes.length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{evidenceNodes.length}</span>
               <span className="text-[13px] text-text-dim font-share">CLUES RECORDED</span>
             </div>
           </div>
@@ -210,7 +191,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="INTEGRITY MATRIX" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">
                 {Math.round(((cases.filter(c => c.status === "SOLVED").length) / (cases.length || 1)) * 100)}%
               </span>
               <span className="text-[13px] text-text-dim font-share">SOLVED RATIO</span>
@@ -221,7 +202,7 @@ export default function DashboardPage() {
           <div className="bg-bg-void/40 border border-border-hairline/10 p-2 flex flex-col justify-center relative">
             <DatabaseTag text="ANALYZER BUFFER" className="mb-1.5 self-start" />
             <div className="flex items-baseline space-x-1.5 mt-1">
-              <span className="font-orbitron font-black text-sm text-cyan-text leading-none">{textInput.length}</span>
+              <span className="font-display font-extrabold text-2xl text-white leading-none tracking-tight">{textInput.length}</span>
               <span className="text-[13px] text-text-dim font-share">CHARS LOADED</span>
             </div>
           </div>
@@ -242,7 +223,7 @@ export default function DashboardPage() {
         {/* Case File Selector / Dossier Panel */}
         <GlassPanel className="p-4 flex flex-col flex-1" clipSize="md">
           <div className="border-b border-border-hairline/25 pb-2 mb-3 flex items-center justify-between">
-            <h3 className="font-orbitron text-sm font-black tracking-widest text-cyan-text flex items-center">
+            <h3 className="font-display text-base font-extrabold tracking-[0.18em] text-white uppercase flex items-center">
               <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
               <ShinyText text="CASE DOSSIER LIST" speed={5} />
             </h3>
@@ -511,16 +492,24 @@ export default function DashboardPage() {
             <button
               onClick={handleScanTrigger}
               disabled={isScanning}
-              className={`hud-target ${!isScanning && !textInput.trim() ? "hud-target-amber" : ""} flex-1 font-orbitron font-black text-xs uppercase tracking-widest py-3 border transition-all duration-300 relative overflow-hidden flex items-center justify-center space-x-2 ${
+              className={`tablet-btn tablet-frame hud-target flex-1 text-sm py-3 relative flex items-center justify-center space-x-2 ${
                 isScanning
-                  ? "bg-cyan-primary/5 border-cyan-primary/30 text-cyan-dim cursor-not-allowed"
+                  ? "tablet-active cursor-not-allowed"
                   : textInput.trim()
-                  ? "bg-cyan-primary/10 border-cyan-primary text-cyan-primary hover:bg-cyan-primary hover:text-bg-void hover:shadow-[0_0_15px_rgba(47,241,228,0.5)] cursor-pointer"
-                  : "bg-bg-void/40 border-amber-alert/25 text-amber-alert/70 hover:border-amber-alert/60 hover:text-amber-alert cursor-pointer"
+                  ? "cursor-pointer"
+                  : "cursor-pointer"
               }`}
-              style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)"
-              }}
+              // Amber frame when there is nothing to scan yet, cyan once armed,
+              // teal while running — the reference's three-state register.
+              style={
+                {
+                  "--frame-color": isScanning
+                    ? "#00ffbe"
+                    : textInput.trim()
+                    ? "var(--color-accent-primary)"
+                    : "var(--color-amber-alert)",
+                } as React.CSSProperties
+              }
             >
               <Search className="w-4 h-4" />
               <span>{isScanning ? `ANALYZING EVIDENCE (${scanProgress}%)` : "INITIALIZE FORENSIC SCAN"}</span>
@@ -656,7 +645,7 @@ export default function DashboardPage() {
         {/* PATTERN ANALYSIS Detector Heuristics Panel */}
         <GlassPanel className="p-4 flex flex-col flex-1" clipSize="md">
           <div className="border-b border-border-hairline/25 pb-2 mb-3 flex items-center justify-between">
-            <h3 className="font-orbitron text-sm font-black tracking-widest text-cyan-text flex items-center">
+            <h3 className="font-display text-base font-extrabold tracking-[0.18em] text-white uppercase flex items-center">
               <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
               <ShinyText text="PATTERN HEURISTICS" speed={5} />
             </h3>
@@ -744,17 +733,22 @@ export default function DashboardPage() {
           </div>
         </GlassPanel>
 
-        {/* TACTICAL GADGET MATRIX */}
-        <GlassPanel className="p-4 flex flex-col justify-between" clipSize="md" showCornerTicks={true}>
-          <div className="border-b border-border-hairline/25 pb-1 mb-2">
-            <h3 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text flex items-center">
-              <span className="w-1 h-2 bg-cyan-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_#2ff1e4]" />
-              TACTICAL GADGET MATRIX
+        {/* LATTICE — ornamental, cursor-reactive. Replaced a "gadget matrix" of
+            buttons that implied capabilities the app does not have; the three
+            routes it exposed are all reachable from the sidebar. */}
+        <GlassPanel className="p-4 flex flex-col justify-between amber-tab" clipSize="md" showCornerTicks={true}>
+          <div className="border-b border-border-hairline/25 pb-1 mb-2 flex items-baseline justify-between">
+            <h3 className="font-display text-sm font-extrabold tracking-[0.18em] text-white flex items-center uppercase">
+              <span className="w-1 h-2 bg-accent-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_#00f3ff]" />
+              Lattice
             </h3>
+            <span className="font-share text-[10px] tracking-widest text-text-dim/45 uppercase">
+              Idle
+            </span>
           </div>
 
-          <div className="flex-1 flex justify-center py-2">
-            <RadialDial items={gadgets} onSelect={handleGadgetSelect} />
+          <div className="flex-1 flex justify-center items-center py-2 min-h-[170px]">
+            <HexLattice />
           </div>
         </GlassPanel>
 
