@@ -41,6 +41,7 @@ import {
 import { useAppStore } from "../../store/appStore";
 import { detectMorse, detectDTMF, applySpectralSubtraction } from "../../lib/audioAnalysis";
 import { parseMidiFile, noteNumberToName } from "../../lib/tools/audio-analysis/midiDecoder";
+import { themeColor, themeRgba } from "../../lib/themeColors";
 
 interface AudioSample {
   id: string;
@@ -126,10 +127,10 @@ function VUMeter({ active, value, isPlaying }: VUMeterProps) {
     <div className="flex space-x-[2px] items-center h-3 w-full bg-bg-void/60 px-1 py-0.5 border border-border-hairline/10 rounded-sm">
       {[...Array(segmentCount)].map((_, idx) => {
         const isLit = idx < litSegments;
-        let colorClass = "bg-[#2ff1e4]/5"; // unlit cyan
+        let colorClass = "bg-[var(--color-accent-primary)]/5"; // unlit cyan
         if (isLit) {
           if (idx < 10) {
-            colorClass = "bg-cyan-primary shadow-[0_0_5px_rgba(47,241,228,0.8)]"; // cyan normal
+            colorClass = "bg-cyan-primary shadow-[0_0_5px_rgb(var(--rgb-accent) / 0.8)]"; // cyan normal
           } else if (idx < 13) {
             colorClass = "bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]"; // amber caution
           } else {
@@ -328,6 +329,78 @@ const generateSewerAudio = (sampleRate: number, duration: number): AudioBuffer =
 
   return buffer;
 };
+
+
+/**
+ * Draws the tape-head waveform: discrete mirrored bars in waveform silver,
+ * modelled on the Arkham tape reference rather than a filled accent envelope.
+ *
+ * `amplitudeAt` returns 0..1 for a given x in canvas pixels, so the same
+ * renderer serves both the decoded buffer and the synthesised preset shapes.
+ *
+ * The trace animates even when paused: a travelling shimmer sweeps along it and
+ * each bar carries a small per-column jitter keyed to time, so the tape reads
+ * as spooling rather than frozen. Bars behind the playhead are held brighter,
+ * which is what makes playback legible at a glance.
+ */
+function drawTapeBars(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  t: number,
+  progress: number,
+  amplitudeAt: (x: number) => number,
+) {
+  const BAR = 3;
+  const GAP = 2;
+  const step = BAR + GAP;
+  const mid = height / 2;
+  const maxH = height * 0.44;
+  const silver = themeRgba("--rgb-waveform", 1);
+  const playedX = progress * width;
+
+  ctx.save();
+  for (let x = 0; x < width; x += step) {
+    const a = amplitudeAt(x + BAR / 2);
+
+    // Per-column jitter + a shimmer band travelling left to right.
+    const jitter = 0.88 + 0.12 * Math.sin(t * 6 + x * 0.35);
+    const shimmer = Math.max(0, 1 - Math.abs(((t * 0.35) % 1) * width - x) / 90);
+
+    const h = Math.max(1.5, a * maxH * jitter);
+    const played = x <= playedX;
+    const alpha = (played ? 0.95 : 0.42) + shimmer * 0.35;
+
+    ctx.fillStyle = silver;
+    ctx.globalAlpha = Math.min(1, alpha);
+    // Glow concentrated on the played side and the shimmer band, so the whole
+    // strip is not uniformly bloomed.
+    ctx.shadowBlur = played || shimmer > 0.15 ? 8 : 0;
+    ctx.shadowColor = silver;
+
+    // Mirrored around the centre line, with a hairline gap so the two halves
+    // stay legible as a pair rather than merging into one block.
+    ctx.fillRect(x, mid - h, BAR, h - 0.75);
+    ctx.fillRect(x, mid + 0.75, BAR, h - 0.75);
+  }
+  ctx.restore();
+
+  // Centre datum line.
+  ctx.strokeStyle = themeRgba("--rgb-waveform", 0.28);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, mid);
+  ctx.lineTo(width, mid);
+  ctx.stroke();
+
+  // Perforated rails top and bottom — the tape-transport framing in the
+  // reference, and they give the strip a defined edge inside its panel.
+  ctx.fillStyle = themeRgba("--rgb-waveform", 0.35);
+  for (let x = 2; x < width; x += 10) {
+    ctx.fillRect(x, 2, 4, 2);
+    ctx.fillRect(x, height - 4, 4, 2);
+  }
+}
 
 export default function AudioForensicsLab() {
   const shouldReduceMotion = useReducedMotion();
@@ -678,11 +751,11 @@ export default function AudioForensicsLab() {
 
     const draw = () => {
       // Background clean
-      ctx.fillStyle = "#020912";
+      ctx.fillStyle = themeColor("--color-bg-void");
       ctx.fillRect(0, 0, width, height);
 
       // Grid Lines
-      ctx.strokeStyle = "rgba(47, 241, 228, 0.04)";
+      ctx.strokeStyle = themeRgba("--rgb-accent", 0.04);
       ctx.lineWidth = 1;
       for (let x = 0; x < width; x += 30) {
         ctx.beginPath();
@@ -699,7 +772,7 @@ export default function AudioForensicsLab() {
 
       if (!currentSample) {
         // Flatline
-        ctx.strokeStyle = "rgba(47, 241, 228, 0.15)";
+        ctx.strokeStyle = themeRgba("--rgb-accent", 0.15);
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, height / 2);
@@ -711,50 +784,21 @@ export default function AudioForensicsLab() {
 
       if (activeTab === "waveform") {
         if (decodedBuffer && waveformPeaks) {
-          // Draw real decoded waveform
-          ctx.strokeStyle = "rgba(47, 241, 228, 0.75)";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          
-          const maxP = waveformPeaks.max;
-          const minP = waveformPeaks.min;
-          
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < width; i++) {
-            const amp = maxP[i] * (height / 2.2);
-            ctx.lineTo(i, height / 2 - amp);
-          }
-          for (let i = width - 1; i >= 0; i--) {
-            const amp = minP[i] * (height / 2.2);
-            ctx.lineTo(i, height / 2 - amp);
-          }
-          ctx.closePath();
-          ctx.fillStyle = "rgba(47, 241, 228, 0.2)";
-          ctx.fill();
-          ctx.stroke();
-
-          // Mirror / shadow bottom fill using RMS peaks
-          ctx.strokeStyle = "rgba(47, 241, 228, 0.25)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < width; i++) {
-            const amp = waveformPeaks.rms[i] * (height / 3);
-            ctx.lineTo(i, height / 2 + amp);
-          }
-          for (let i = width - 1; i >= 0; i--) {
-            const amp = -waveformPeaks.rms[i] * (height / 3);
-            ctx.lineTo(i, height / 2 + amp);
-          }
-          ctx.closePath();
-          ctx.fillStyle = "rgba(47, 241, 228, 0.05)";
-          ctx.fill();
-          ctx.stroke();
+          // Tape-head bar trace: discrete mirrored columns in waveform silver
+          // rather than a filled accent-coloured envelope.
+          const progress = currentTime / currentSample.duration;
+          drawTapeBars(ctx, width, height, performance.now() / 1000, progress, (i) => {
+            const idx = Math.min(width - 1, Math.max(0, Math.round(i)));
+            // Peak-to-peak excursion, with RMS setting the floor so quiet
+            // passages still read as signal rather than dropping to nothing.
+            const pk = Math.abs(waveformPeaks.max[idx]) + Math.abs(waveformPeaks.min[idx]);
+            return Math.min(1, pk * 0.55 + waveformPeaks.rms[idx] * 0.5);
+          });
 
           // Playhead indicator
           const progressRatio = currentTime / currentSample.duration;
           const playheadX = progressRatio * width;
-          ctx.strokeStyle = "#ff3b4e";
+          ctx.strokeStyle = themeColor("--color-red-threat");
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(playheadX, 0);
@@ -762,7 +806,7 @@ export default function AudioForensicsLab() {
           ctx.stroke();
 
           // Playhead cap/handle
-          ctx.fillStyle = "#ff3b4e";
+          ctx.fillStyle = themeColor("--color-red-threat");
           ctx.beginPath();
           ctx.moveTo(playheadX - 4, 0);
           ctx.lineTo(playheadX + 4, 0);
@@ -770,70 +814,33 @@ export default function AudioForensicsLab() {
           ctx.closePath();
           ctx.fill();
         } else {
-          // Draw Preset Waveform
-          ctx.strokeStyle = "rgba(47, 241, 228, 0.65)";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-
-          const samplePoints = 120;
+          // Preset shapes, drawn through the same tape-bar renderer so the
+          // synthesised samples animate identically to a decoded buffer.
           const progressRatio = currentTime / currentSample.duration;
-
-          for (let i = 0; i < samplePoints; i++) {
-            const x = (i / samplePoints) * width;
-            
-            // Generate a wave outline depending on the audio type
-            let amplitude = 0;
-            const normalIndex = i / samplePoints;
-
-            if (currentSample.type === "morse") {
-              // Morse clicks (pulsing blocks)
-              const morsePattern = Math.sin(normalIndex * 35) > 0.3 ? 0.8 : 0.05;
-              amplitude = morsePattern * (Math.sin(normalIndex * Math.PI) * 28);
-            } else if (currentSample.type === "reversed") {
-              // Echoey reverse vocal shapes (gradually rising in tail)
-              const rise = Math.pow(normalIndex, 2.5) * 20;
-              amplitude = (Math.sin(normalIndex * 80) * Math.cos(normalIndex * 15)) * rise;
-            } else if (currentSample.type === "dtmf") {
-              // Double sine wave patterns (dual tone)
-              amplitude = (Math.sin(normalIndex * 120) * 12 + Math.sin(normalIndex * 85) * 12) * Math.sin(normalIndex * Math.PI);
+          const sampleType = currentSample.type;
+          drawTapeBars(ctx, width, height, performance.now() / 1000, progressRatio, (x) => {
+            const n = x / width;
+            let a = 0;
+            if (sampleType === "morse") {
+              a = Math.sin(n * 35) > 0.3 ? 0.85 : 0.06;
+              a *= Math.sin(n * Math.PI);
+            } else if (sampleType === "reversed") {
+              a = Math.abs(Math.sin(n * 80) * Math.cos(n * 15)) * Math.pow(n, 2.5) * 2.4;
+            } else if (sampleType === "dtmf") {
+              a = Math.abs(Math.sin(n * 120) * 0.5 + Math.sin(n * 85) * 0.5) * Math.sin(n * Math.PI);
             } else {
-              // Smooth noise/ambience
-              amplitude = (Math.random() - 0.5) * 18 * Math.sin(normalIndex * Math.PI);
+              // Deterministic pseudo-noise: Math.random() here would reshuffle
+              // every bar on every frame and read as static, not a waveform.
+              a = Math.abs(Math.sin(n * 211.3) * Math.cos(n * 97.7)) * Math.sin(n * Math.PI);
             }
+            return Math.min(1, Math.max(0.04, a));
+          });
 
-            // Add dynamic live animation ripple if playing
-            if (isPlaying && x <= progressRatio * width && x >= progressRatio * width - 40) {
-              amplitude *= 1.4 + Math.random() * 0.4;
-            }
-
-            ctx.lineTo(x, height / 2 + amplitude);
-          }
-          ctx.stroke();
-
-          // Mirror / shadow bottom fill
-          ctx.strokeStyle = "rgba(47, 241, 228, 0.15)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(0, height / 2);
-          for (let i = 0; i < samplePoints; i++) {
-            const x = (i / samplePoints) * width;
-            const normalIndex = i / samplePoints;
-            let amplitude = 0;
-            if (currentSample.type === "morse") {
-              amplitude = (Math.sin(normalIndex * 35) > 0.3 ? 0.8 : 0.05) * (Math.sin(normalIndex * Math.PI) * 15);
-            } else if (currentSample.type === "reversed") {
-              amplitude = (Math.sin(normalIndex * 80) * Math.cos(normalIndex * 15)) * Math.pow(normalIndex, 2.5) * 10;
-            } else {
-              amplitude = (Math.random() - 0.5) * 8;
-            }
-            ctx.lineTo(x, height / 2 - amplitude);
-          }
-          ctx.stroke();
+          // (drawTapeBars already renders the mirrored half.)
 
           // Playhead indicator
           const playheadX = progressRatio * width;
-          ctx.strokeStyle = "#ff3b4e";
+          ctx.strokeStyle = themeColor("--color-red-threat");
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(playheadX, 0);
@@ -841,7 +848,7 @@ export default function AudioForensicsLab() {
           ctx.stroke();
 
           // Playhead cap/handle
-          ctx.fillStyle = "#ff3b4e";
+          ctx.fillStyle = themeColor("--color-red-threat");
           ctx.beginPath();
           ctx.moveTo(playheadX - 4, 0);
           ctx.lineTo(playheadX + 4, 0);
@@ -909,7 +916,7 @@ export default function AudioForensicsLab() {
           }
 
           // Overlay horizontal frequency guide tags
-          ctx.fillStyle = "rgba(47, 241, 228, 0.6)";
+          ctx.fillStyle = themeRgba("--rgb-accent", 0.6);
           ctx.font = "10px monospace";
           const maxFreq = decodedBuffer.sampleRate / 2;
           ctx.fillText(`${(maxFreq / 1000 * 0.9).toFixed(1)} kHz`, 5, 14);
@@ -917,7 +924,7 @@ export default function AudioForensicsLab() {
           ctx.fillText("0 Hz", 5, height - 6);
 
           // Playhead/scanline overlay
-          ctx.strokeStyle = "#ff3b4e";
+          ctx.strokeStyle = themeColor("--color-red-threat");
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(scanLineX, 0);
@@ -953,17 +960,17 @@ export default function AudioForensicsLab() {
             const grad = ctx.createLinearGradient(x, height, x, 0);
             if (intensity > 0.7) {
               grad.addColorStop(0, "rgba(2, 9, 18, 0.8)");
-              grad.addColorStop(0.4, "rgba(47, 241, 228, 0.4)");
-              grad.addColorStop(0.7, "rgba(255, 59, 78, 0.85)");
+              grad.addColorStop(0.4, themeRgba("--rgb-accent", 0.4));
+              grad.addColorStop(0.7, themeRgba("--rgb-threat", 0.85));
               grad.addColorStop(1, "rgba(255, 230, 100, 0.9)");
             } else if (intensity > 0.3) {
               grad.addColorStop(0, "rgba(2, 9, 18, 0.8)");
-              grad.addColorStop(0.5, "rgba(47, 241, 228, 0.15)");
-              grad.addColorStop(0.9, "rgba(47, 241, 228, 0.75)");
-              grad.addColorStop(1, "rgba(255, 59, 78, 0.3)");
+              grad.addColorStop(0.5, themeRgba("--rgb-accent", 0.15));
+              grad.addColorStop(0.9, themeRgba("--rgb-accent", 0.75));
+              grad.addColorStop(1, themeRgba("--rgb-threat", 0.3));
             } else {
               grad.addColorStop(0, "rgba(2, 9, 18, 0.9)");
-              grad.addColorStop(1, "rgba(47, 241, 228, 0.12)");
+              grad.addColorStop(1, themeRgba("--rgb-accent", 0.12));
             }
 
             ctx.fillStyle = grad;
@@ -971,7 +978,7 @@ export default function AudioForensicsLab() {
           }
 
           // Overlay horizontal frequency guide tags
-          ctx.fillStyle = "rgba(47, 241, 228, 0.35)";
+          ctx.fillStyle = themeRgba("--rgb-accent", 0.35);
           ctx.font = "7px monospace";
           ctx.fillText("3.0 kHz", 5, 12);
           ctx.fillText("1.5 kHz", 5, height / 2);
@@ -979,7 +986,7 @@ export default function AudioForensicsLab() {
 
           // Highlight spectral hotspots in red
           if (currentSample.type === "dtmf") {
-            ctx.strokeStyle = "rgba(255, 59, 78, 0.4)";
+            ctx.strokeStyle = themeRgba("--rgb-threat", 0.4);
             ctx.lineWidth = 1;
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
@@ -992,7 +999,7 @@ export default function AudioForensicsLab() {
           }
 
           // Playhead/scanline overlay
-          ctx.strokeStyle = "#ff3b4e";
+          ctx.strokeStyle = themeColor("--color-red-threat");
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(scanLineX, 0);
@@ -1493,7 +1500,7 @@ ${currentSample.analysisSummary}`;
       {dragActive && (
         <div className="fixed inset-0 z-[999] bg-bg-void/80 backdrop-blur-sm flex items-center justify-center pointer-events-none animate-fade-in">
           <div className="border-2 border-dashed border-cyan-primary bg-cyan-primary/5 px-12 py-10 flex flex-col items-center space-y-3">
-            <span className="font-orbitron text-sm font-black tracking-[0.2em] text-cyan-primary uppercase">
+            <span className="font-display text-sm font-black tracking-[0.2em] text-cyan-primary uppercase">
               RELEASE TO ANALYZE
             </span>
             <span className="font-share text-[13px] text-text-dim uppercase tracking-widest">
@@ -1508,8 +1515,8 @@ ${currentSample.analysisSummary}`;
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_#2ff1e4]" />
-              <h1 className="font-orbitron text-sm font-black tracking-widest text-cyan-text uppercase">
+              <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_var(--color-accent-primary)]" />
+              <h1 className="font-display text-sm font-black tracking-widest text-cyan-text uppercase">
                 AUDIO SPECTRAL FORENSICS
               </h1>
             </div>
@@ -1527,8 +1534,8 @@ ${currentSample.analysisSummary}`;
       <GlassPanel className="p-4 flex flex-col" clipSize="md">
         <div className="border-b border-border-hairline/20 pb-2 mb-3.5 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
-            <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text uppercase">
+            <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
+            <h3 className="font-display text-xs font-black tracking-widest text-cyan-text uppercase">
               {!currentSample ? "AWAITING ACOUSTIC CARRIER" : activeTab === "waveform" ? "TIME-DOMAIN WAVEFORM DISPLAY" : "FREQUENCY-DOMAIN SPECTROGRAM"}
             </h3>
           </div>
@@ -1544,7 +1551,7 @@ ${currentSample.analysisSummary}`;
                 }}
                 className={`px-3 py-1 font-mono text-[12px] uppercase border transition-all duration-200 disabled:opacity-30 disabled:pointer-events-none ${
                   activeTab === tab
-                    ? "bg-cyan-primary border-cyan-primary text-bg-void font-bold shadow-[0_0_6px_#2ff1e4]"
+                    ? "bg-cyan-primary border-cyan-primary text-bg-void font-bold shadow-[0_0_6px_var(--color-accent-primary)]"
                     : "bg-bg-void/40 border-border-hairline/25 text-text-dim hover:text-text-primary hover:border-cyan-primary/30"
                 }`}
               >
@@ -1556,7 +1563,7 @@ ${currentSample.analysisSummary}`;
 
         {/* Core Canvas Viewport */}
         <div className="flex-1 bg-bg-void/90 border border-cyan-primary/10 p-3 relative min-h-[220px] overflow-hidden group">
-          <div className="absolute inset-0 border-[3px] border-cyan-primary animate-signal-lock pointer-events-none z-10 opacity-0 shadow-[inset_0_0_20px_rgba(47,241,228,0.5)]" />
+          <div className="absolute inset-0 border-[3px] border-cyan-primary animate-signal-lock pointer-events-none z-10 opacity-0 shadow-[inset_0_0_20px_rgb(var(--rgb-accent) / 0.5)]" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-primary/20 to-transparent w-full h-[10%] animate-scanline-vertical opacity-30 mix-blend-screen pointer-events-none" />
           
           {activeTab === "midi" ? (
@@ -1657,7 +1664,7 @@ ${currentSample.analysisSummary}`;
               ref={waveformCanvasRef} 
               width={1000} 
               height={220} 
-              className={`w-full h-full object-cover border border-cyan-primary/5 shadow-[inset_0_0_12px_rgba(47,241,228,0.05)] ${currentSample ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`w-full h-full object-cover border border-cyan-primary/5 shadow-[inset_0_0_12px_rgb(var(--rgb-accent) / 0.05)] ${currentSample ? "cursor-pointer" : "cursor-not-allowed"}`}
               onClick={(e) => {
                 if (!currentSample) return;
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -1675,7 +1682,7 @@ ${currentSample.analysisSummary}`;
 
           {/* If scanning, overlay scanning label */}
           {isScanning && (
-            <div className="absolute bottom-4 right-4 flex items-center space-x-2 font-share text-[13px] text-cyan-primary tracking-widest bg-bg-void/90 px-2.5 py-1 border border-cyan-primary/30 shadow-[0_0_10px_rgba(47,241,228,0.2)]">
+            <div className="absolute bottom-4 right-4 flex items-center space-x-2 font-share text-[13px] text-cyan-primary tracking-widest bg-bg-void/90 px-2.5 py-1 border border-cyan-primary/30 shadow-[0_0_10px_rgb(var(--rgb-accent) / 0.2)]">
               <span className="w-2 h-2 rounded-full bg-cyan-primary animate-ping-cyan" />
               <span className="font-bold">{scanningMessage}</span>
             </div>
@@ -1716,7 +1723,7 @@ ${currentSample.analysisSummary}`;
           >
             {currentSample && (
               <div 
-                className="absolute top-0 bottom-0 left-0 bg-cyan-primary shadow-[0_0_8px_#2ff1e4]" 
+                className="absolute top-0 bottom-0 left-0 bg-cyan-primary shadow-[0_0_8px_var(--color-accent-primary)]" 
                 style={{ width: `${(currentTime / currentSample.duration) * 100}%` }}
               />
             )}
@@ -1777,7 +1784,7 @@ ${currentSample.analysisSummary}`;
             <button
               disabled={!currentSample || isScanning}
               onClick={triggerSpectralScan}
-              className="hud-target w-full py-2 bg-cyan-primary text-bg-void hover:bg-white hover:shadow-[0_0_20px_rgba(47,241,228,0.6)] active:scale-[0.98] transition-all duration-200 text-[13px] font-black tracking-widest font-orbitron uppercase disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center space-x-2"
+              className="hud-target w-full py-2 bg-cyan-primary text-bg-void hover:bg-white hover:shadow-[0_0_20px_rgb(var(--rgb-accent) / 0.6)] active:scale-[0.98] transition-all duration-200 text-[13px] font-black tracking-widest font-display uppercase disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center space-x-2"
               style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 0 100%)" }}
             >
               <Radio className={`w-3.5 h-3.5 text-bg-void ${isScanning ? 'animate-radar-sweep' : 'animate-hex-pulse-flicker'}`} />
@@ -1800,7 +1807,7 @@ ${currentSample.analysisSummary}`;
               }}
               className={`px-3 py-1 border transition-all duration-200 disabled:opacity-30 disabled:pointer-events-none mr-2 ${
                 noiseReductionEnabled
-                  ? "bg-cyan-primary border-cyan-primary text-bg-void font-bold shadow-[0_0_6px_#2ff1e4]"
+                  ? "bg-cyan-primary border-cyan-primary text-bg-void font-bold shadow-[0_0_6px_var(--color-accent-primary)]"
                   : "bg-bg-void/40 border-border-hairline/25 text-text-dim hover:text-text-primary hover:border-cyan-primary/30"
               }`}
             >
@@ -1909,7 +1916,7 @@ ${currentSample.analysisSummary}`;
         <div className="col-span-12 lg:col-span-7 flex flex-col space-y-4">
           <GlassPanel className="p-4 h-full flex flex-col justify-between" clipSize="sm">
             <div className="border-b border-border-hairline/20 pb-1.5 mb-3">
-              <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
+              <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
                 <Compass className="w-3.5 h-3.5 mr-2 text-cyan-primary animate-hex-pulse-flicker" />
                 SIGNAL ARCHIVE & INPUT PORT
               </h3>
@@ -1949,7 +1956,7 @@ ${currentSample.analysisSummary}`;
                 <div className="w-10 h-10 rounded-full border border-cyan-primary/25 flex items-center justify-center mb-2 bg-bg-void group-hover:scale-105 group-hover:border-cyan-primary/55 transition-all duration-300">
                   <Upload className="w-4 h-4 text-cyan-primary/70 group-hover:text-cyan-primary" />
                 </div>
-                <span className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text text-center">
+                <span className="font-display text-[13px] font-black tracking-widest text-cyan-text text-center">
                   UPLOAD AUDIO STREAM
                 </span>
                 <span className="text-[12px] text-text-dim uppercase text-center mt-0.5">
@@ -1997,7 +2004,7 @@ ${currentSample.analysisSummary}`;
             <div className="border-b border-border-hairline/15 pb-1.5 mb-3 flex justify-between items-center">
               <div className="flex items-center">
                 <Award className="w-3.5 h-3.5 text-cyan-primary mr-1.5" />
-                <h4 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text uppercase">
+                <h4 className="font-display text-[13px] font-black tracking-widest text-cyan-text uppercase">
                   EXTRACTED FREQUENCY HARMONIC SIGNAL
                 </h4>
               </div>

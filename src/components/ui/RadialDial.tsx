@@ -166,7 +166,7 @@ export default function RadialDial({
         <div
           className="absolute w-[100px] h-[100px] rounded-full flex flex-col items-center justify-center bg-bg-void/90 border border-cyan-primary/30 text-center p-2 z-10 overflow-hidden"
           style={{
-            boxShadow: "inset 0 0 10px rgba(0, 243, 255, 0.15)",
+            boxShadow: "inset 0 0 10px rgb(var(--rgb-accent) / 0.15)",
           }}
         >
           {/* Subtle tech lines inside the center */}
@@ -181,7 +181,7 @@ export default function RadialDial({
                 transition={{ duration: 0.2 }}
                 className="flex flex-col items-center justify-center"
               >
-                <span className="font-orbitron text-[12px] font-black text-cyan-primary tracking-widest uppercase">
+                <span className="font-display text-[12px] font-black text-cyan-primary tracking-widest uppercase">
                   ACTIVE
                 </span>
                 <span className="font-chakra text-[13px] font-extrabold text-text-primary tracking-wider uppercase truncate max-w-[85px] leading-tight my-0.5">
@@ -225,7 +225,7 @@ export default function RadialDial({
               <div
                 className={`absolute inset-0 border transition-all duration-300 ${
                   isActive
-                    ? "bg-cyan-primary/20 border-cyan-primary text-cyan-primary shadow-[0_0_8px_rgba(0,243,255,0.4)]"
+                    ? "bg-cyan-primary/20 border-cyan-primary text-cyan-primary shadow-[0_0_8px_rgb(var(--rgb-accent) / 0.4)]"
                     : isHovered
                     ? "bg-cyan-primary/5 border-cyan-primary/50 text-cyan-primary"
                     : "bg-bg-void/90 border-border-hairline/30 text-text-dim"

@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import GlassPanel from "../../components/ui/GlassPanel";
+import DataWall from "../../components/ui/DataWall";
 import Badge from "../../components/ui/Badge";
 import { useAppStore } from "../../store/appStore";
 import ShinyText from "../../components/react-bits/ShinyText";
 import FactoryThroughputBar from "../../components/ui/FactoryThroughputBar";
-import { playSuccessChime, playFailBuzz, playTypeKey, playHoverEvidence, playPinClick } from "../../lib/soundEngine";
+import { playSuccessChime, playFailBuzz, playTypeKey, playHoverEvidence, playPinClick, playHoverBlip } from "../../lib/soundEngine";
 import { getTool, asText, pipelineLayerIds } from "../../lib/tools/registry";
 import { textToBigInteger, bigIntegerToText } from "../../lib/tools/utility/bigInteger";
 
@@ -48,7 +49,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
             y1="50"
             x2="18"
             y2="100"
-            stroke={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.15)"}
+            stroke={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.15)"}
             strokeWidth="2"
             className="transition-all duration-300"
           />
@@ -58,7 +59,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
             y1="0"
             x2="18"
             y2="50"
-            stroke={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.15)"}
+            stroke={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.15)"}
             strokeWidth="2"
             className="transition-all duration-300"
           />
@@ -68,7 +69,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
             y1="0"
             x2="18"
             y2="100"
-            stroke={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.15)"}
+            stroke={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.15)"}
             strokeWidth="2"
             className="transition-all duration-300"
           />
@@ -80,7 +81,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
           y1="50"
           x2="48"
           y2="50"
-          stroke={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.15)"}
+          stroke={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.15)"}
           strokeWidth="2"
           className="transition-all duration-300"
         />
@@ -90,7 +91,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
           cx="18"
           cy="50"
           r={isActive ? "4" : "3"}
-          fill={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.25)"}
+          fill={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.25)"}
           className="transition-all duration-300"
         />
 
@@ -100,7 +101,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
           y="46"
           width="4"
           height="8"
-          fill={isActive ? "var(--color-cyan-primary)" : "rgba(47, 241, 228, 0.15)"}
+          fill={isActive ? "var(--color-cyan-primary)" : "rgb(var(--rgb-accent) / 0.15)"}
           className="transition-all duration-300"
         />
       </svg>
@@ -108,7 +109,7 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
       {/* Floating data packet animation traveling down the branch */}
       {isActive && !shouldReduceMotion && (
         <motion.div
-          className="absolute w-2 h-2 bg-cyan-primary rounded-full shadow-[0_0_8px_#2ff1e4]"
+          className="absolute w-2 h-2 bg-cyan-primary rounded-full shadow-[0_0_8px_var(--color-accent-primary)]"
           initial={{ left: "18px", top: "50%", y: "-50%", x: "-50%" }}
           animate={{ left: "48px" }}
           transition={{
@@ -122,54 +123,67 @@ function BreakoutLine({ index, total, isActive }: BreakoutLineProps) {
   );
 }
 
-// Simple logic analyzer oscilloscope graphic
-function LogicOscilloscope({ isActive }: { isActive: boolean }) {
-  const shouldReduceMotion = useReducedMotion();
-  return (
-    <div className="h-10 w-full bg-bg-void/75 border border-border-hairline/10 rounded-sm overflow-hidden relative flex items-center px-2">
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-      <div className="absolute top-1 left-2 font-mono text-[12px] text-cyan-dim/40 tracking-widest uppercase">
-        SIGNAL WAVEFORM
-      </div>
-      <svg className="w-full h-8 opacity-80" viewBox="0 0 200 40" preserveAspectRatio="none">
-        <motion.path
-          d="M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20"
-          fill="none"
-          stroke="var(--color-cyan-primary)"
-          strokeWidth="1.5"
-          animate={isActive && !shouldReduceMotion ? {
-            strokeDasharray: ["4 4", "10 5", "4 4"],
-            strokeDashoffset: [0, -40],
-            d: [
-              "M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20",
-              "M 0 20 Q 20 35, 40 20 T 80 20 T 120 20 T 160 20 T 200 20",
-              "M 0 20 Q 20 5, 40 20 T 80 20 T 120 20 T 160 20 T 200 20"
-            ]
-          } : {}}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.path
-          d="M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20"
-          fill="none"
-          stroke="rgba(47, 241, 228, 0.25)"
-          strokeWidth="1"
-          animate={isActive && !shouldReduceMotion ? {
-            strokeDashoffset: [0, 40],
-            d: [
-              "M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20",
-              "M 0 20 Q 15 5, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20",
-              "M 0 20 Q 15 35, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 200 20"
-            ]
-          } : {}}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
-        />
-      </svg>
-      <div className="absolute bottom-1 right-2 font-mono text-[12px] text-cyan-primary/50 flex items-center space-x-1">
-        <span className={`w-1 h-1 rounded-full ${isActive ? "bg-cyan-primary animate-pulse" : "bg-text-dim/20"}`} />
-        <span>{isActive ? "SAMPLED" : "STANDBY"}</span>
-      </div>
-    </div>
-  );
+
+
+/** Character-class composition of the buffer, used by the source signature. */
+function analyseSource(text: string) {
+  const len = text.length;
+  if (!len) return null;
+
+  let hexish = 0, b64ish = 0, digits = 0, letters = 0, ws = 0, other = 0;
+  const freq = new Map<string, number>();
+
+  for (const ch of text) {
+    freq.set(ch, (freq.get(ch) ?? 0) + 1);
+    if (/\s/.test(ch)) { ws++; continue; }
+    if (/[0-9]/.test(ch)) digits++;
+    else if (/[a-zA-Z]/.test(ch)) letters++;
+    else other++;
+    if (/[0-9a-fA-F]/.test(ch)) hexish++;
+    if (/[A-Za-z0-9+/=]/.test(ch)) b64ish++;
+  }
+
+  // Shannon entropy over the observed symbol distribution.
+  let entropy = 0;
+  for (const n of freq.values()) {
+    const pr = n / len;
+    entropy -= pr * Math.log2(pr);
+  }
+
+  const body = len - ws || 1;
+  const stripped = text.replace(/\s/g, "");
+
+  // Format plausibility. These are the same shape checks a solver does by eye:
+  // does the alphabet fit, and is the length consistent with the encoding.
+  // Interior whitespace between word-like runs. Base64 and Base32 payloads are
+  // not normally split this way, so this is what stops ordinary prose — whose
+  // letters happen to fit the alphabet and whose length happens to divide by
+  // four — from being reported as Base64.
+  const looksSpaced = /\S\s+\S/.test(text.trim()) && /[a-z]{2,}\s+[a-z]{2,}/i.test(text);
+
+  const hints: string[] = [];
+  // Ordered most specific first: a run of 0s and 1s is also valid hex and valid
+  // decimal, so binary has to lead or the useful answer is buried.
+  if (stripped.length > 3 && /^[01]+$/.test(stripped) && stripped.length % 8 === 0) hints.push("BINARY");
+  if (stripped.length > 1 && /^[0-9a-fA-F]+$/.test(stripped) && stripped.length % 2 === 0) hints.push("HEX");
+  if (!looksSpaced && stripped.length > 3 && /^[A-Za-z0-9+/]+={0,2}$/.test(stripped) && stripped.length % 4 === 0) hints.push("BASE64");
+  if (!looksSpaced && stripped.length > 3 && /^[A-Z2-7]+=*$/.test(stripped)) hints.push("BASE32");
+  if (stripped.length > 1 && /^[0-9\s]+$/.test(text.trim())) hints.push("DECIMAL");
+  if (/^[.\-\s/]+$/.test(text.trim())) hints.push("MORSE");
+
+  return {
+    len,
+    unique: freq.size,
+    entropy: +entropy.toFixed(2),
+    hints,
+    bars: [
+      { key: "letters", label: "Alpha", pct: (letters / body) * 100 },
+      { key: "digits", label: "Numeric", pct: (digits / body) * 100 },
+      { key: "other", label: "Symbol", pct: (other / body) * 100 },
+    ],
+    hexPct: (hexish / body) * 100,
+    b64Pct: (b64ish / body) * 100,
+  };
 }
 
 export default function EncodingLab() {
@@ -189,6 +203,17 @@ export default function EncodingLab() {
    * from the sidebar.
    */
   const [highlightedRow, setHighlightedRow] = useState<string | null>(null);
+  const [showAllPorts, setShowAllPorts] = useState(false);
+  const sourceStats = useMemo(() => analyseSource(inputText), [inputText]);
+
+  // Bumped whenever the buffer changes so the channels replay their resolve.
+  // Without this the decode is instantaneous and nothing conveys that sixteen
+  // formats were just driven off one stream.
+  const [decodeGen, setDecodeGen] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setDecodeGen((g) => g + 1), 90);
+    return () => clearTimeout(t);
+  }, [inputText, isDecodeMode]);
 
   useEffect(() => {
     if (!pendingToolId) return;
@@ -359,14 +384,14 @@ export default function EncodingLab() {
     <div className="h-full w-full p-4 grid grid-cols-12 gap-4 overflow-y-auto font-chakra select-none">
       
       {/* ================= LEFT COLUMN: CENTRAL SIGNAL SOURCE (INPUT & SYSTEM MONITOR) ================= */}
-      <div className="col-span-12 xl:col-span-5 flex flex-col space-y-4">
+      <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 min-h-0">
         
         {/* Input buffer block */}
-        <GlassPanel className="p-4 flex flex-col min-h-[190px]" clipSize="md" showCornerTicks={true}>
+        <GlassPanel className="p-4 flex flex-col shrink-0 min-h-[190px]" clipSize="md" showCornerTicks={true}>
           <div className="border-b border-border-hairline/25 pb-2 mb-3 flex justify-between items-center">
             <div>
-              <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
-                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
+              <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
+                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
                 ENCODING BUFFER INPUT
               </h3>
               <p className="text-[12px] font-share text-text-dim uppercase tracking-wider mt-0.5">
@@ -399,121 +424,140 @@ export default function EncodingLab() {
             >
               CLEAR
             </button>
-            <span className="text-[12px] uppercase text-cyan-primary/50 self-center">
-              CENTRAL BUS: CH_01
-            </span>
           </div>
         </GlassPanel>
 
-        {/* PROMOTED & EXPANDED: 8x8 LED System Bus Monitor & Logic Analyzer */}
-        <GlassPanel className="p-4 flex-1 flex flex-col" clipSize="md" showCornerTicks={true}>
-          <div className="border-b border-border-hairline/25 pb-1 mb-3.5 flex justify-between items-end">
-            <div>
-              <h3 className="font-orbitron text-[13px] font-black tracking-widest text-cyan-text flex items-center uppercase">
-                <span className="w-1.5 h-3 bg-cyan-primary mr-1.5 transform -skew-x-12 inline-block shadow-[0_0_4px_#2ff1e4]" />
-                LOGIC ANALYZER // BYTE-BIT MONITOR
+        {/* SOURCE SIGNATURE — replaces the 8-bit bus monitor that used to sit
+            here. That showed an LED register readout of the first eight bytes
+            only: fixed, near-static, and useless for deciding what a payload
+            is. This reads the whole buffer and answers the question a solver
+            actually has on arrival — what does this look like, and which
+            formats are even plausible — before they scan sixteen channels. */}
+        <GlassPanel className="p-4 flex-1 flex flex-col min-h-0 relative overflow-hidden" clipSize="md" showCornerTicks={true}>
+          <DataWall cell={18} intensity={0.07} />
+
+          <div className="relative z-10 flex flex-col min-h-0 h-full">
+            <div className="border-b border-border-hairline/25 pb-2 mb-3">
+              <h3 className="font-display text-sm font-extrabold tracking-[0.18em] text-white flex items-center uppercase">
+                <span className="w-1.5 h-3 bg-accent-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
+                Source signature
               </h3>
-              <span className="text-[12px] font-share text-text-dim block uppercase mt-0.5">
-                Live 8-bit bus mapping of the primary input buffer index range
-              </span>
+              <p className="text-[12px] font-share text-text-dim uppercase tracking-wider mt-0.5">
+                Composition of the live buffer
+              </p>
             </div>
-            <span className="font-mono text-[12px] text-green-verified bg-green-verified/5 px-1.5 py-0.5 border border-green-verified/15 animate-pulse">
-              BUS MASTER
-            </span>
-          </div>
 
-          {/* Fully featured hardware register monitor display */}
-          <div className="flex-1 bg-bg-void/60 border border-border-hairline/10 p-3.5 flex flex-col justify-between space-y-3 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-            
-            <div className="w-full space-y-2">
-              {/* Header row */}
-              <div className="grid grid-cols-12 gap-1 text-[12px] font-mono text-text-dim border-b border-border-hairline/10 pb-1 font-bold uppercase tracking-wider">
-                <div className="col-span-2">CHANNEL</div>
-                <div className="col-span-1 text-center">CHR</div>
-                <div className="col-span-6 text-center">8-BIT LOGIC REGISTER</div>
-                <div className="col-span-1.5 text-right">HEX</div>
-                <div className="col-span-1.5 text-right">DEC</div>
+            {!sourceStats ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-8">
+                <span className="font-display text-sm font-extrabold tracking-[0.16em] text-white/60 uppercase">
+                  Buffer empty
+                </span>
+                <span className="font-share text-[12px] tracking-wide text-text-dim/60 uppercase max-w-xs leading-relaxed">
+                  Paste a payload and its shape will be read here
+                </span>
               </div>
-
-              {/* Data rows */}
-              <div className="space-y-1.5">
-                {bitGrid.map((row) => (
-                  <div
-                    key={row.index}
-                    className="grid grid-cols-12 gap-1 items-center hover:bg-cyan-primary/5 px-0.5 py-1 transition-colors duration-150 border-b border-border-hairline/5"
-                  >
-                    {/* Channel */}
-                    <div className="col-span-2 font-mono text-[12px] text-cyan-dim/80 flex items-center space-x-1">
-                      <span className={`w-1 h-1 rounded-full ${row.charCode ? "bg-cyan-primary shadow-[0_0_4px_#2ff1e4]" : "bg-text-dim/10"}`} />
-                      <span>BUS.0{row.index + 1}</span>
+            ) : (
+              <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-y-auto hud-scroll-hidden">
+                {/* Headline figures */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    ["Bytes", String(sourceStats.len)],
+                    ["Symbols", String(sourceStats.unique)],
+                    ["Entropy", sourceStats.entropy.toFixed(2)],
+                  ].map(([label, value]) => (
+                    <div key={label} className="bg-bg-void/50 border border-border-hairline/15 p-2">
+                      <div className="font-share text-[12px] tracking-widest text-text-dim/60 uppercase">
+                        {label}
+                      </div>
+                      <div className="font-display text-xl font-extrabold text-white leading-none mt-1 tracking-tight">
+                        {value}
+                      </div>
                     </div>
+                  ))}
+                </div>
 
-                    {/* Character tag */}
-                    <div className="col-span-1 text-center">
-                      <span className={`font-mono text-[12px] font-black px-1 py-0.2 ${row.charCode ? "text-cyan-text bg-cyan-primary/10" : "text-text-dim/30 bg-bg-void"}`}>
-                        {row.charCode === 32 ? "SPC" : row.charCode === 0 ? "Ø" : row.char}
+                {/* Character-class composition */}
+                <div className="space-y-1.5">
+                  <div className="font-share text-[12px] tracking-widest text-text-dim/60 uppercase">
+                    Composition
+                  </div>
+                  {sourceStats.bars.map((b) => (
+                    <div key={b.key} className="flex items-center gap-2">
+                      <span className="font-share text-[12px] uppercase tracking-wide text-cyan-text/70 w-16 shrink-0">
+                        {b.label}
+                      </span>
+                      <span className="relative flex-1 h-[6px] bg-bg-void/70 border border-border-hairline/20 overflow-hidden">
+                        <span
+                          className="absolute inset-y-0 left-0 bg-accent-primary/70 transition-[width] duration-500 ease-out"
+                          style={{ width: `${Math.min(100, b.pct)}%` }}
+                        />
+                      </span>
+                      <span className="font-mono text-[12px] text-cyan-text/80 w-10 text-right tabular-nums shrink-0">
+                        {Math.round(b.pct)}%
                       </span>
                     </div>
+                  ))}
+                </div>
 
-                    {/* LED Logic Bits */}
-                    <div className="col-span-6 flex justify-center space-x-1 md:space-x-1.5">
-                      {row.bits.map((bit, bitIdx) => {
-                        const isOne = bit === 1;
-                        return (
-                          <div
-                            key={bitIdx}
-                            className={`w-3.5 h-3.5 border transition-all duration-300 relative group flex items-center justify-center ${
-                              isOne
-                                ? "bg-cyan-primary border-cyan-primary shadow-[0_0_8px_rgba(47,241,228,0.9)] scale-105"
-                                : "bg-bg-void border-border-hairline/15 hover:border-cyan-primary/40"
-                            }`}
-                            style={{ clipPath: "polygon(2px 0, 100% 0, 100% calc(100% - 2px), calc(100% - 2px) 100%, 0 100%, 0 2px)" }}
-                            title={`Byte ${row.index + 1}, Bit ${8 - bitIdx}: ${bit}`}
-                          >
-                            {/* Hover bit detail tooltip overlay */}
-                            <span className="hidden group-hover:block absolute bottom-5 left-1/2 -translate-x-1/2 bg-bg-void border border-cyan-primary px-1.5 py-0.5 text-[12px] text-cyan-primary font-mono whitespace-nowrap z-50 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                              REG{8 - bitIdx} = {bit}
-                            </span>
-                          </div>
-                        );
-                      })}
+                {/* Alphabet fit — how much of the payload each alphabet covers */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    ["Hex alphabet", sourceStats.hexPct],
+                    ["Base64 alphabet", sourceStats.b64Pct],
+                  ].map(([label, pct]) => (
+                    <div key={label as string} className="bg-bg-void/40 border border-border-hairline/15 p-2">
+                      <div className="font-share text-[12px] tracking-widest text-text-dim/60 uppercase truncate">
+                        {label}
+                      </div>
+                      <div
+                        className={`font-mono text-sm mt-0.5 ${
+                          (pct as number) === 100 ? "text-green-active" : "text-cyan-text/80"
+                        }`}
+                      >
+                        {Math.round(pct as number)}% fit
+                      </div>
                     </div>
+                  ))}
+                </div>
 
-                    {/* Hex indicator */}
-                    <div className="col-span-1.5 text-right font-mono text-[12px] text-cyan-dim font-bold">
-                      {row.hexCode !== "--" ? `0x${row.hexCode}` : "--"}
-                    </div>
-
-                    {/* Dec indicator */}
-                    <div className="col-span-1.5 text-right font-mono text-[12px] text-text-dim">
-                      {row.decCode}
-                    </div>
+                {/* Plausible formats */}
+                <div>
+                  <div className="font-share text-[12px] tracking-widest text-text-dim/60 uppercase mb-1.5">
+                    Shape matches
                   </div>
-                ))}
+                  {sourceStats.hints.length === 0 ? (
+                    <p className="font-share text-[12px] tracking-wide text-text-dim/50 uppercase">
+                      No format matches this alphabet and length cleanly — likely
+                      plaintext, a cipher, or a mixed payload.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {sourceStats.hints.map((h) => (
+                        <span
+                          key={h}
+                          className="font-display text-[12px] font-extrabold tracking-[0.14em] uppercase px-2 py-1 border border-green-active/50 text-green-active bg-green-active/10"
+                        >
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-
-            {/* Simulated Live wave oscilloscope */}
-            <LogicOscilloscope isActive={inputText.length > 0} />
-          </div>
-
-          <div className="flex justify-between text-[12px] font-mono text-text-dim border-t border-border-hairline/15 pt-1.5 mt-2">
-            <span>BYTES: 01 to 08 REGISTER CHANNELS</span>
-            <span className="text-cyan-primary font-bold animate-hex-pulse-flicker">LIVE BUS SPECTROGRAM</span>
+            )}
           </div>
         </GlassPanel>
 
       </div>
 
       {/* ================= CENTER COLUMN: THE SIMULTANEOUS FORMAT BREAKOUT BOARD ================= */}
-      <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4">
+      <div className="col-span-12 xl:col-span-5 flex flex-col space-y-4 min-h-0">
         
-        <GlassPanel className="p-4 flex-1 flex flex-col" clipSize="md" showCornerTicks={true}>
+        <GlassPanel className="p-4 flex-1 flex flex-col min-h-0" clipSize="md" showCornerTicks={true}>
           <div className="border-b border-border-hairline/25 pb-2 mb-3.5 flex justify-between items-center">
             <div>
-              <h3 className="font-orbitron text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
-                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_#2ff1e4]" />
+              <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
+                <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
                 BREAKOUT ROUTING CHANNELS
               </h3>
               <p className="text-[12px] font-share text-text-dim tracking-wide uppercase mt-0.5">
@@ -528,7 +572,7 @@ export default function EncodingLab() {
                   setIsDecodeMode(false);
                   playPinClick();
                 }}
-                className={`px-2 py-0.5 transition-colors uppercase cursor-pointer ${!isDecodeMode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_6px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                className={`px-2 py-0.5 transition-colors uppercase cursor-pointer ${!isDecodeMode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_6px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
               >
                 ENCODE
               </button>
@@ -537,14 +581,19 @@ export default function EncodingLab() {
                   setIsDecodeMode(true);
                   playPinClick();
                 }}
-                className={`px-2 py-0.5 transition-colors uppercase cursor-pointer ${isDecodeMode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_6px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                className={`px-2 py-0.5 transition-colors uppercase cursor-pointer ${isDecodeMode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_6px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
               >
                 DECODE
               </button>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+          {/* Bounded with max-h, not just flex-1 + min-h-0. This panel sits in a
+              grid row that sizes to its content, so no ancestor ever gives it a
+              definite height and overflow-y-auto could never engage — "show all"
+              grew the container to ~2600px and pushed the page down instead of
+              scrolling inside it. */}
+          <div className="flex-1 min-h-0 max-h-[72vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1 hud-scroll-hidden">
             {(() => {
               const rowsData = [
                 {
@@ -661,26 +710,57 @@ export default function EncodingLab() {
                 }
               ];
 
-              return rowsData.map((row, idx) => (
-                <div key={row.key} className="flex items-stretch group" id={`breakout-container-${row.key}`}>
+              // Ports that produced output lead; the rest collapse into a
+              // strip. Rendering all sixteen at full height meant decoding a
+              // Base64 string gave one useful card and fifteen full-size
+              // "PORT STANDBY" placeholders to scroll past.
+              // A failed decoder returns an "ERROR: ..." string, which is
+              // truthy — so filtering on presence alone promoted every failure
+              // to a full-size card. Only genuine output counts as a hit.
+              const isHit = (v: string) => !!v && !v.startsWith("ERROR");
+              const activeRows = rowsData.filter((r) => isHit(r.value));
+              const idleRows = rowsData.filter((r) => !isHit(r.value));
+              const shown = showAllPorts ? rowsData : activeRows;
+
+              const renderRow = (row: typeof rowsData[0], idx: number, total: number) => (
+                <div
+                  key={`${row.key}-${decodeGen}`}
+                  className="channel-resolve flex items-stretch group min-w-0"
+                  data-hit={isHit(row.value) ? "" : undefined}
+                  style={{ animationDelay: `${Math.min(idx, 10) * 45}ms` }}
+                  id={`breakout-container-${row.key}`}
+                >
                   {/* Visually connecting signal breakout line */}
                   <BreakoutLine index={idx} total={rowsData.length} isActive={!!row.value} />
 
                   {/* Translator Node Port */}
                   <div
-                    className={`hud-target flex-1 bg-bg-void/50 border p-2.5 space-y-1.5 relative hover:border-cyan-dim/30 hover:bg-bg-void/65 transition-all duration-300 ${
+                    className={`channel-port hud-target flex-1 min-w-0 border p-2.5 space-y-1.5 relative transition-all duration-300 ${
                       highlightedRow === row.key
-                        ? "border-accent-primary/70 bg-accent-primary/[0.06] shadow-[0_0_16px_rgba(0,243,255,0.2)]"
-                        : "border-border-hairline/15"
+                        ? "border-accent-primary/70 bg-accent-primary/[0.06] shadow-[0_0_16px_rgb(var(--rgb-accent) / 0.2)]"
+                        : isHit(row.value)
+                        ? "border-accent-primary/25 bg-accent-primary/[0.03]"
+                        : "border-border-hairline/15 bg-bg-void/50"
                     }`}
                     style={{ clipPath: "polygon(0 0, 100% 0, 99% 100%, 0 100%)", ["--reticle-size" as any]: "7px" }}
                   >
                     {/* Header label */}
-                    <div className="flex justify-between items-center text-[13px]">
-                      <div className="flex flex-col">
-                        <span className="font-chakra font-extrabold text-cyan-dim uppercase tracking-wider flex items-center">
-                          <span className={`w-1 h-2.5 mr-1.5 inline-block ${row.value ? "bg-cyan-primary shadow-[0_0_4px_#2ff1e4]" : "bg-cyan-dim/20"}`} />
-                          {row.label}
+                    <div className="flex justify-between items-center text-[13px] gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-display font-extrabold uppercase tracking-[0.14em] flex items-center gap-1.5 min-w-0">
+                          <span
+                            className={`w-1 h-3 shrink-0 inline-block ${
+                              isHit(row.value)
+                                ? "bg-accent-primary shadow-[0_0_5px_var(--color-accent-primary)]"
+                                : "bg-cyan-dim/25"
+                            }`}
+                          />
+                          <span className="font-share text-[12px] text-text-dim/50 tabular-nums shrink-0">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <span className={`truncate ${isHit(row.value) ? "text-white" : "text-cyan-dim"}`}>
+                            {row.label}
+                          </span>
                         </span>
                         <span className="text-[12px] text-text-dim/60 font-share uppercase tracking-wide mt-0.2">
                           {row.description}
@@ -694,12 +774,42 @@ export default function EncodingLab() {
                     {/* Read-only stream row */}
                     <div className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
-                        <div className="flex-1 bg-bg-void/80 border border-border-hairline/10 p-2 font-mono text-[13px] text-text-primary h-8 flex items-center overflow-x-auto overflow-y-hidden scrollbar-none whitespace-nowrap leading-none select-all select-text">
+                        {/* Wraps and clamps instead of scrolling sideways. A
+                            fixed-height nowrap box with overflow-x meant every
+                            long value got its own horizontal scrollbar, and a
+                            single wide value stretched the whole row past the
+                            column. Long output now wraps to two lines and is
+                            still selectable and copyable in full. */}
+                        <div className="flex-1 min-w-0 bg-bg-void/80 border border-border-hairline/10 p-2 font-mono text-[13px] text-text-primary">
+                          {/* The clamp lives on this inner div, not the flex
+                              item above it. Flex items get their `display`
+                              blockified, so -webkit-box became flow-root and
+                              the line clamp silently did nothing — which is why
+                              both the Tailwind utility and an inline style
+                              failed here. A max-height clamp is not a
+                              substitute: it cuts at an arbitrary pixel and
+                              slices the last row of glyphs in half. */}
+                          <div
+                            className="select-all select-text break-all"
+                            style={{
+                              // Height clamp pinned to an exact multiple of the
+                              // line box: 2 x 1.45em. That is what makes it cut
+                              // between lines rather than through one — the
+                              // earlier 2.9em against leading-snug was not an
+                              // exact multiple, which is why glyphs were sliced.
+                              // -webkit-box/line-clamp is not used: it is
+                              // rejected here and silently degrades.
+                              lineHeight: 1.45,
+                              height: "2.9em",
+                              overflow: "hidden",
+                            }}
+                          >
                           {row.value ? (
                             <ShinyText text={row.value} speed={3} className="tracking-wide" />
                           ) : (
                             <span className="text-text-dim/20 italic">-- PORT STANDBY --</span>
                           )}
+                          </div>
                         </div>
 
                         {/* Actions column */}
@@ -740,7 +850,64 @@ export default function EncodingLab() {
                     </div>
                   </div>
                 </div>
-              ));
+              );
+
+              return (
+                <>
+                  {shown.length === 0 && (
+                    <div className="border border-dashed border-border-hairline/20 bg-bg-void/25 p-4 text-center">
+                      <p className="font-display text-sm font-extrabold tracking-[0.16em] text-white uppercase">
+                        Awaiting input
+                      </p>
+                      <p className="text-[12px] text-text-dim/70 font-share tracking-wide mt-1">
+                        Paste into the buffer above and every format that can read it
+                        will appear here.
+                      </p>
+                    </div>
+                  )}
+
+                  {shown.map((row, idx) => renderRow(row, idx, shown.length))}
+
+                  {!showAllPorts && idleRows.length > 0 && (
+                    <div className="border border-border-hairline/15 bg-bg-void/35 p-2.5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-share text-[12px] tracking-widest text-text-dim/70 uppercase">
+                          {idleRows.length} format{idleRows.length === 1 ? "" : "s"} produced nothing
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowAllPorts(true)}
+                          onMouseEnter={() => playHoverBlip()}
+                          className="hud-target font-display text-[12px] font-extrabold tracking-[0.14em] uppercase text-accent-primary px-2 py-1 border border-accent-primary/40 hover:bg-accent-primary/10 transition-colors cursor-pointer"
+                        >
+                          Show all
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {idleRows.map((r) => (
+                          <span
+                            key={r.key}
+                            className="font-mono text-[12px] text-text-dim/50 border border-border-hairline/15 px-1.5 py-0.5 uppercase"
+                          >
+                            {r.badge}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {showAllPorts && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllPorts(false)}
+                      onMouseEnter={() => playHoverBlip()}
+                      className="hud-target w-full font-display text-[12px] font-extrabold tracking-[0.14em] uppercase text-text-dim hover:text-accent-primary px-2 py-1.5 border border-border-hairline/20 hover:border-accent-primary/40 transition-colors cursor-pointer"
+                    >
+                      Collapse empty formats
+                    </button>
+                  )}
+                </>
+              );
             })()}
           </div>
         </GlassPanel>
@@ -759,7 +926,7 @@ export default function EncodingLab() {
                   <Layers className="w-3 h-3 text-cyan-primary/45" />
                   <span className="font-mono text-[12px] tracking-widest uppercase">AUXILIARY PROCESSOR</span>
                 </div>
-                <h3 className="font-orbitron text-[13px] font-black tracking-widest text-text-primary flex items-center mt-1">
+                <h3 className="font-display text-[13px] font-black tracking-widest text-text-primary flex items-center mt-1">
                   CASCADE PIPELINE CODER
                 </h3>
                 <p className="text-[12px] font-share text-text-dim/80 tracking-wide uppercase mt-0.5">
@@ -774,7 +941,7 @@ export default function EncodingLab() {
                     setIsPipelineDecode(false);
                     playPinClick();
                   }}
-                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${!isPipelineDecode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${!isPipelineDecode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
                 >
                   ENC
                 </button>
@@ -783,7 +950,7 @@ export default function EncodingLab() {
                     setIsPipelineDecode(true);
                     playPinClick();
                   }}
-                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${isPipelineDecode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${isPipelineDecode ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
                 >
                   DEC
                 </button>
@@ -814,7 +981,7 @@ export default function EncodingLab() {
                 <div className="grid grid-cols-2 gap-1.5">
                   {[0, 1].map((stageIdx) => (
                     <label key={stageIdx} className="flex flex-col gap-0.5">
-                      <span className="text-text-dim/50 text-[11px] uppercase tracking-widest">STAGE {stageIdx + 1}</span>
+                      <span className="text-text-dim/50 text-[12px] uppercase tracking-widest">STAGE {stageIdx + 1}</span>
                       <select
                         value={pipelineLayers[stageIdx] || ""}
                         onChange={(e) => {
@@ -870,7 +1037,7 @@ export default function EncodingLab() {
                   <Cpu className="w-3 h-3 text-cyan-primary/45" />
                   <span className="font-mono text-[12px] tracking-widest uppercase">PRECISION NUMERICS</span>
                 </div>
-                <h3 className="font-orbitron text-[13px] font-black tracking-widest text-text-primary flex items-center mt-1">
+                <h3 className="font-display text-[13px] font-black tracking-widest text-text-primary flex items-center mt-1">
                   BIGINT CODER
                 </h3>
                 <p className="text-[12px] font-share text-text-dim/80 tracking-wide uppercase mt-0.5">
@@ -886,7 +1053,7 @@ export default function EncodingLab() {
                     setBigIntInput("");
                     playPinClick();
                   }}
-                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${bigIntMode === "toBigInt" ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${bigIntMode === "toBigInt" ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
                 >
                   TEXT → INT
                 </button>
@@ -896,7 +1063,7 @@ export default function EncodingLab() {
                     setBigIntInput("");
                     playPinClick();
                   }}
-                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${bigIntMode === "toText" ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgba(47,241,228,0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
+                  className={`px-1.5 py-0.5 transition-colors uppercase cursor-pointer ${bigIntMode === "toText" ? "bg-cyan-primary text-bg-void font-bold shadow-[0_0_4px_rgb(var(--rgb-accent) / 0.4)]" : "text-text-dim hover:text-cyan-primary"}`}
                 >
                   INT → TEXT
                 </button>
@@ -984,7 +1151,7 @@ export default function EncodingLab() {
                   <Search className="w-3 h-3 text-cyan-primary/30" />
                   <span className="font-mono text-[12px] tracking-widest uppercase">DICTIONARY LOOKUP</span>
                 </div>
-                <h3 className="font-orbitron text-[12px] font-black tracking-widest text-text-primary mt-0.5">
+                <h3 className="font-display text-[12px] font-black tracking-widest text-text-primary mt-0.5">
                   ENCODING REFERENCER
                 </h3>
               </div>

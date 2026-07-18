@@ -148,7 +148,7 @@ export default function CredentialChallenge({ onClose }: CredentialChallengeProp
       className="fixed inset-0 z-[100] bg-bg-void/92 backdrop-blur-sm flex items-center justify-center overflow-hidden select-none"
     >
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.04] pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-cyan-primary/30 shadow-[0_0_10px_#2ff1e4] animate-scanline-vertical pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-cyan-primary/30 shadow-[0_0_10px_var(--color-accent-primary)] animate-scanline-vertical pointer-events-none" />
 
       <motion.div
         initial={reduce ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.98 }}
@@ -162,9 +162,9 @@ export default function CredentialChallenge({ onClose }: CredentialChallengeProp
           glow={phase === "granted"}
           className={`p-7 transition-colors duration-300 ${
             phase === "denied"
-              ? "border-red-threat/60 shadow-[0_0_20px_rgba(255,59,78,0.25)]"
+              ? "border-red-threat/60 shadow-[0_0_20px_rgb(var(--rgb-threat) / 0.25)]"
               : phase === "granted"
-                ? "border-accent-primary/60 shadow-[0_0_24px_rgba(0,243,255,0.25)]"
+                ? "border-accent-primary/60 shadow-[0_0_24px_rgb(var(--rgb-accent) / 0.25)]"
                 : ""
           }`}
         >
@@ -196,9 +196,9 @@ export default function CredentialChallenge({ onClose }: CredentialChallengeProp
                 <img
                   src="/assets/icons/iconbelfry.png"
                   alt=""
-                  className="w-12 h-12 mx-auto object-contain filter drop-shadow-[0_0_10px_rgba(47,241,228,0.5)]"
+                  className="w-12 h-12 mx-auto object-contain filter drop-shadow-[0_0_10px_rgb(var(--rgb-accent) / 0.5)]"
                 />
-                <h1 className="font-orbitron text-[14px] font-black tracking-[0.35em] text-cyan-primary uppercase">
+                <h1 className="font-display text-[14px] font-black tracking-[0.35em] text-cyan-primary uppercase">
                   Credential Challenge
                 </h1>
                 <p className="font-share text-[12px] tracking-[0.18em] text-cyan-dim uppercase">
@@ -261,10 +261,10 @@ export default function CredentialChallenge({ onClose }: CredentialChallengeProp
                   type="submit"
                   disabled={!canSubmit}
                   onMouseEnter={() => canSubmit && playReticleLock()}
-                  className="w-full py-2.5 font-orbitron text-[13px] font-black tracking-[0.3em] uppercase
+                  className="w-full py-2.5 font-display text-[13px] font-black tracking-[0.3em] uppercase
                              border border-accent-primary/50 text-accent-primary bg-accent-primary/[0.06]
                              transition-all duration-200 cursor-pointer
-                             hover:bg-accent-primary/15 hover:shadow-[0_0_16px_rgba(0,243,255,0.25)]
+                             hover:bg-accent-primary/15 hover:shadow-[0_0_16px_rgb(var(--rgb-accent) / 0.25)]
                              disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-accent-primary/[0.06]
                              disabled:hover:shadow-none"
                 >
@@ -272,7 +272,7 @@ export default function CredentialChallenge({ onClose }: CredentialChallengeProp
                 </button>
               </form>
 
-              <p className="mt-6 pt-4 border-t border-border-hairline/40 text-center font-share text-[11px] tracking-[0.15em] text-cyan-dim/60 uppercase">
+              <p className="mt-6 pt-4 border-t border-border-hairline/40 text-center font-share text-[12px] tracking-[0.15em] text-cyan-dim/60 uppercase">
                 Dismiss to continue on the local cache
               </p>
             </>
@@ -310,10 +310,10 @@ function SessionPanel({
       />
       <div className="space-y-1">
         <p className="font-share text-[12px] tracking-[0.3em] text-cyan-dim uppercase">Active operative</p>
-        <h2 className="font-orbitron text-sm font-black tracking-[0.25em] text-accent-primary uppercase">
+        <h2 className="font-display text-sm font-black tracking-[0.25em] text-accent-primary uppercase">
           {knight.label}
         </h2>
-        <p className="font-share text-[11px] tracking-[0.18em] text-cyan-dim/80 uppercase pt-1">
+        <p className="font-share text-[12px] tracking-[0.18em] text-cyan-dim/80 uppercase pt-1">
           Oracle link active // Board shared
         </p>
       </div>
@@ -321,14 +321,14 @@ function SessionPanel({
         type="button"
         onClick={onSignOut}
         onMouseEnter={() => playHoverBlip()}
-        className="mt-2 w-full py-2 font-orbitron text-[12px] font-black tracking-[0.28em] uppercase
+        className="mt-2 w-full py-2 font-display text-[12px] font-black tracking-[0.28em] uppercase
                    border border-red-threat/40 text-red-threat/90 bg-red-threat/[0.05]
-                   hover:bg-red-threat/15 hover:shadow-[0_0_14px_rgba(255,59,78,0.2)]
+                   hover:bg-red-threat/15 hover:shadow-[0_0_14px_rgb(var(--rgb-threat) / 0.2)]
                    transition-all duration-200 cursor-pointer"
       >
         Terminate session
       </button>
-      <p className="font-share text-[11px] tracking-[0.15em] text-cyan-dim/60 uppercase">
+      <p className="font-share text-[12px] tracking-[0.15em] text-cyan-dim/60 uppercase">
         Reverts this browser to the local cache
       </p>
     </div>
@@ -394,10 +394,10 @@ function GrantedPanel({ label, sigil, reduce }: { label: string; sigil: string |
       )}
       <div className="space-y-1.5">
         <p className="font-share text-[12px] tracking-[0.3em] text-cyan-dim uppercase">Identity Confirmed</p>
-        <h2 className="font-orbitron text-base font-black tracking-[0.25em] text-accent-primary uppercase">
+        <h2 className="font-display text-base font-black tracking-[0.25em] text-accent-primary uppercase">
           <DecryptText text={label} duration={700} silent />
         </h2>
-        <p className="font-share text-[11px] tracking-[0.18em] text-cyan-dim/80 uppercase pt-1">
+        <p className="font-share text-[12px] tracking-[0.18em] text-cyan-dim/80 uppercase pt-1">
           Oracle link established // Board synchronizing
         </p>
       </div>

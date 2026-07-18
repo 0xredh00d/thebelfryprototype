@@ -32,45 +32,48 @@ export default function KnightBadge() {
       aria-label={`Active operative: ${label}. Open session panel.`}
       className="flex items-center gap-2.5 border-l border-border-hairline/20 pl-4 cursor-pointer group"
     >
-      <span
-        className={`relative w-10 h-10 shrink-0 flex items-center justify-center rounded-full border transition-shadow duration-300 ${
-          reduce ? "" : "animate-breathing"
-        }`}
-        style={{
-          borderColor: `${accent}66`,
-          backgroundColor: `${accent}0d`,
-          boxShadow: `0 0 10px ${accent}33`,
-        }}
-      >
-        {/* Sweep ring, as on the sidebar emblem — the badge reads as live, not static. */}
+      {/* The chrome (frame, backing, glow) is themed; only the sigil itself
+          carries the knight's colour. Previously the whole badge was painted in
+          that hardcoded accent and spun a dashed ring, so e.g. Red Hood's
+          saturated red rotated against cyan chrome and read as a foreign
+          element rather than part of the console. */}
+      {/* Round, not square. The sigil artwork is a circular emblem, so a square
+          bordered box put a second outline around it that could never line up
+          with the circle inside — it read as the badge being misaligned rather
+          than as a frame. Matching the art's shape makes the hover a clean ring.
+          (.tablet-frame is also wrong here: its brackets grow 10px -> 16px,
+          which on a 40px box is nearly half the width.) */}
+      <span className="relative w-10 h-10 shrink-0 flex items-center justify-center rounded-full border border-border-hairline/30 bg-bg-void/60 transition-[border-color,box-shadow] duration-200 group-hover:border-accent-primary/60 group-hover:shadow-[0_0_12px_-2px_var(--color-accent-primary)]">
+        {/* A slow inner glow replaces the rotating ring: still alive, but it
+            does not draw the eye away from the module content. */}
         {!reduce && (
           <span
-            className="absolute inset-0 rounded-full border border-dashed animate-radar-sweep"
-            style={{ borderColor: `${accent}2b` }}
+            className="absolute inset-[3px] rounded-full animate-hex-pulse-flicker pointer-events-none"
+            style={{ backgroundColor: `${accent}14` }}
           />
         )}
         <img
           src={sigil}
           alt=""
           draggable={false}
-          className="w-8 h-8 object-contain"
+          className="w-7 h-7 object-contain relative z-10"
           style={{
             // Same optical correction as the board pin: wide, flat marks read
             // smaller than upright ones at an identical box size.
             transform: `scale(${knight.sigilScale ?? 1})`,
-            filter: `drop-shadow(0 0 5px ${accent}b3)`,
+            filter: `drop-shadow(0 0 4px ${accent}99)`,
           }}
         />
       </span>
 
       <span className="hidden xl:flex flex-col items-start leading-tight">
         <span
-          className="font-orbitron text-[12px] font-black tracking-[0.18em] uppercase transition-colors"
+          className="font-display text-[13px] font-black tracking-[0.16em] uppercase transition-colors"
           style={{ color: accent }}
         >
           {label}
         </span>
-        <span className="font-share text-[11px] tracking-[0.14em] text-cyan-dim/70 uppercase">
+        <span className="font-share text-[12px] tracking-[0.12em] text-cyan-dim/70 uppercase mt-0.5">
           Oracle link
         </span>
       </span>

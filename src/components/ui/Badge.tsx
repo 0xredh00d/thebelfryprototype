@@ -30,7 +30,7 @@ export default function Badge({
 
   return (
     <span
-      className={`inline-flex items-center border-l-2 border-y border-r border-solid transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center whitespace-nowrap shrink-0 border-l-2 border-y border-r border-solid transition-colors ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       style={{
         clipPath: "polygon(0 0, 100% 0, 92% 100%, 0 100%)",
       }}

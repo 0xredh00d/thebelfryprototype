@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Saira+Condensed:wght@600;700;800&display=swap');
 @keyframes breathing {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -17,16 +17,16 @@ html {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(112, 162, 168, 0.3) #020912;
+  scrollbar-color: rgb(var(--rgb-primary) / 0.3) var(--color-bg-void);
 }
 
 /* Custom text selection highlights to preserve the cyber/dark theme */
 ::selection {
-  background-color: rgba(112, 162, 168, 0.3) !important;
+  background-color: rgb(var(--rgb-primary) / 0.3) !important;
   color: #b3e2e6 !important;
 }
 ::-moz-selection {
-  background-color: rgba(112, 162, 168, 0.3) !important;
+  background-color: rgb(var(--rgb-primary) / 0.3) !important;
   color: #b3e2e6 !important;
 }
 
@@ -45,11 +45,23 @@ button:focus, a:focus, input:focus, textarea:focus, select:focus {
   --color-glow-highlight: #ffffff;
   --color-amber-alert: #ff9d2e;
   --color-red-threat: #ff3b4e;
-  --color-green-verified: #70a2a8;
+  --color-green-verified: #2fffa8;
+  /* "Go" green and its pale-blue counterpart. Declared here so Tailwind emits
+     the utilities; the per-theme blocks at the end of this file override the
+     values. */
+  --color-green-active: #2fffa8;
+  --color-blue-pale: #b3e2e6;
+  /* Tape-head silver. The waveform reads as bright playback trace rather than
+     another accent-coloured readout, per the Arkham tape reference. */
+  --color-waveform: #e8f4f8;
   --color-text-primary: #f5f8f9;
   --color-text-dim: #f5f8f9;
   --color-border-hairline: rgba(112, 162, 168, 0.15);
 
+  /* Heavy condensed grotesque for panel titles, buttons and stat labels — the
+     Arkham-tablet register. Orbitron stays in place everywhere else; this is
+     scoped to chrome, not a global display swap. */
+  --font-display: "Saira Condensed", "Chakra Petch", sans-serif;
   --font-orbitron: "Orbitron", sans-serif;
   --font-chakra: "Chakra Petch", sans-serif;
   --font-share: "Share Tech Mono", monospace;
@@ -338,7 +350,7 @@ html, body, #root {
   padding: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #020912;
+  background-color: var(--color-bg-void);
   color: #eaf6f6;
   font-family: "Chakra Petch", sans-serif;
   font-size: 17px; /* Increased for HUD legibility */
@@ -348,8 +360,8 @@ html, body, #root {
 /* Background grid overlay + edges vignette */
 .hud-bg-grid {
   background-image: 
-    linear-gradient(rgba(112, 162, 168, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(112, 162, 168, 0.03) 1px, transparent 1px);
+    linear-gradient(rgb(var(--rgb-primary) / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--rgb-primary) / 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
   background-position: center;
 }
@@ -362,7 +374,7 @@ html, body, #root {
 .bat-bg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(112, 162, 168, 0.03) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, rgb(var(--rgb-primary) / 0.03) 0%, transparent 70%);
   z-index: -1;
 }
 
@@ -383,18 +395,18 @@ html, body, #root {
 
 .hud-scrollbar::-webkit-scrollbar-track {
   background: rgba(2, 9, 18, 0.5);
-  border-left: 1px solid rgba(112, 162, 168, 0.05);
+  border-left: 1px solid rgb(var(--rgb-primary) / 0.05);
 }
 
 .hud-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(112, 162, 168, 0.2);
+  background: rgb(var(--rgb-primary) / 0.2);
   border-radius: 0px;
-  border: 1px solid rgba(112, 162, 168, 0.1);
+  border: 1px solid rgb(var(--rgb-primary) / 0.1);
 }
 
 .hud-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(112, 162, 168, 0.5);
-  box-shadow: 0 0 8px rgba(112, 162, 168, 0.3);
+  background: rgb(var(--rgb-primary) / 0.5);
+  box-shadow: 0 0 8px rgb(var(--rgb-primary) / 0.3);
 }
 
 /* Custom Scrollbar */
@@ -404,17 +416,17 @@ html, body, #root {
 }
 
 ::-webkit-scrollbar-track {
-  background: #020912;
-  border-left: 1px solid rgba(112, 162, 168, 0.08);
+  background: var(--color-bg-void);
+  border-left: 1px solid rgb(var(--rgb-primary) / 0.08);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(112, 162, 168, 0.3);
+  background: rgb(var(--rgb-primary) / 0.3);
   border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(112, 162, 168, 0.6);
+  background: rgb(var(--rgb-primary) / 0.6);
 }
 
 /* Custom Clip-Path Angular Panels */
@@ -456,57 +468,66 @@ html, body, #root {
 /* Cyber Glow Effects: Softened with a diffuse desaturated primary and secondary white bloom */
 .cyan-glow, .glow-text {
   text-shadow: 
-    0 0 4px rgba(112, 162, 168, 0.45),
+    0 0 4px rgb(var(--rgb-primary) / 0.45),
     0 0 10px rgba(255, 255, 255, 0.25);
 }
 
 .cyan-glow-border {
   box-shadow: 
-    0 0 6px rgba(112, 162, 168, 0.2), 
+    0 0 6px rgb(var(--rgb-primary) / 0.2), 
     0 0 14px rgba(255, 255, 255, 0.08),
-    inset 0 0 4px rgba(112, 162, 168, 0.12),
+    inset 0 0 4px rgb(var(--rgb-primary) / 0.12),
     inset 0 0 8px rgba(255, 255, 255, 0.04);
 }
 
 .red-glow {
-  text-shadow: 0 0 8px rgba(255, 59, 78, 0.5);
+  text-shadow: 0 0 8px rgb(var(--rgb-threat) / 0.5);
 }
 
 .amber-glow {
-  text-shadow: 0 0 8px rgba(255, 157, 46, 0.5);
+  text-shadow: 0 0 8px rgb(var(--rgb-amber) / 0.5);
 }
 
 /* Micro-interactions: brief glow-intensify on hover for buttons rather than instant state swap */
 button, .btn-interactive {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Named properties, not `all`. `all` transitions every animatable property
+     including layout-affecting ones, which is needless work on every hover. */
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              text-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Label glow only. This rule used to add a box-shadow to EVERY button in the
+   app, which drew a rectangular halo around each one's full bounding box —
+   on composite buttons like KnightBadge (a round sigil plus a text label) that
+   halo traced the whole 158x43 rectangle and read as a stray "ghost" outline
+   floating off the icon. Buttons that want a glow opt in via .hud-target,
+   .tablet-btn or .engine-btn, all of which shape it to the control. */
 button:hover, .btn-interactive:hover {
-  text-shadow: 
-    0 0 4px rgba(112, 162, 168, 0.5), 
+  text-shadow:
+    0 0 4px rgb(var(--rgb-primary) / 0.5),
     0 0 10px rgba(255, 255, 255, 0.35);
-  box-shadow: 
-    0 0 6px rgba(112, 162, 168, 0.25), 
-    0 0 14px rgba(255, 255, 255, 0.12);
 }
 
 /* Sidebar glow-pulse animations */
 @keyframes glowPulse {
   0%, 100% {
-    text-shadow: 0 0 3px rgba(112, 162, 168, 0.35), 0 0 8px rgba(255, 255, 255, 0.15);
-    box-shadow: inset 0 0 4px rgba(112, 162, 168, 0.08);
+    text-shadow: 0 0 3px rgb(var(--rgb-primary) / 0.35), 0 0 8px rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 0 4px rgb(var(--rgb-primary) / 0.08);
   }
   50% {
-    text-shadow: 0 0 6px rgba(112, 162, 168, 0.6), 0 0 12px rgba(255, 255, 255, 0.3);
-    box-shadow: inset 0 0 6px rgba(112, 162, 168, 0.15);
+    text-shadow: 0 0 6px rgb(var(--rgb-primary) / 0.6), 0 0 12px rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 6px rgb(var(--rgb-primary) / 0.15);
   }
 }
 
 @keyframes glowPulseSubtle {
   0%, 100% {
-    text-shadow: 0 0 2px rgba(112, 162, 168, 0.2), 0 0 5px rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 2px rgb(var(--rgb-primary) / 0.2), 0 0 5px rgba(255, 255, 255, 0.1);
   }
   50% {
-    text-shadow: 0 0 4px rgba(112, 162, 168, 0.4), 0 0 8px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 4px rgb(var(--rgb-primary) / 0.4), 0 0 8px rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -529,13 +550,13 @@ button:hover, .btn-interactive:hover {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(112, 162, 168, 0.12) 50%,
-    rgba(112, 162, 168, 0.35) 95%,
-    rgba(112, 162, 168, 0.6) 100%
+    rgb(var(--rgb-primary) / 0.12) 50%,
+    rgb(var(--rgb-primary) / 0.35) 95%,
+    rgb(var(--rgb-primary) / 0.6) 100%
   );
   height: 4px;
   box-shadow: 
-    0 0 4px rgba(112, 162, 168, 0.4),
+    0 0 4px rgb(var(--rgb-primary) / 0.4),
     0 0 12px rgba(255, 255, 255, 0.2);
 }
 
@@ -547,8 +568,8 @@ button:hover, .btn-interactive:hover {
   50% { opacity: 0.25; }
 }
 .image-forensic-grid {
-  background-image: linear-gradient(rgba(112, 162, 168, 0.2) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(112, 162, 168, 0.2) 1px, transparent 1px);
+  background-image: linear-gradient(rgb(var(--rgb-primary) / 0.2) 1px, transparent 1px),
+                    linear-gradient(90deg, rgb(var(--rgb-primary) / 0.2) 1px, transparent 1px);
   background-size: 20px 20px;
   animation: gridPulse 4s ease-in-out infinite;
 }
@@ -573,7 +594,7 @@ button:hover, .btn-interactive:hover {
   100% { transform: scale(1.5); opacity: 0; }
 }
 .audio-sonar-ring {
-  border: 1px solid rgba(112, 162, 168, 0.4);
+  border: 1px solid rgb(var(--rgb-primary) / 0.4);
   border-radius: 50%;
   position: absolute;
   animation: sonarRipple 3s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
@@ -596,12 +617,12 @@ button:hover, .btn-interactive:hover {
 }
 .binary-rain-stream {
   animation: binaryRain 20s linear infinite;
-  background: linear-gradient(to bottom, transparent, rgba(112, 162, 168, 0.1) 50%, transparent);
+  background: linear-gradient(to bottom, transparent, rgb(var(--rgb-primary) / 0.1) 50%, transparent);
 }
 
 @keyframes threatPulse {
-  0%, 100% { background-color: rgba(255, 59, 78, 0.05); }
-  50% { background-color: rgba(255, 59, 78, 0.15); }
+  0%, 100% { background-color: rgb(var(--rgb-threat) / 0.05); }
+  50% { background-color: rgb(var(--rgb-threat) / 0.15); }
 }
 .file-threat-pulse {
   animation: threatPulse 1s ease-in-out infinite;
@@ -617,17 +638,34 @@ button:hover, .btn-interactive:hover {
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
+/* Signal instability on the scanned carrier.
+   Runs on a long cycle with the displacement confined to two brief windows, so
+   it reads as an occasional tracking error rather than a strobe. The previous
+   version ran a full cycle every 0.2s (5Hz) at 4px amplitude — that is inside
+   the 3-5Hz band associated with photosensitive seizure risk, and it is the
+   reason the light table looked like a broken television. Keep the period
+   above ~1.5s and the amplitude low if this is ever retuned. */
 @keyframes rgb-split-flicker {
-  0%, 100% { filter: drop-shadow(0 0 0 transparent); transform: translateX(0); }
-  15% { filter: drop-shadow(4px 0 0 rgba(255,0,0,0.6)) drop-shadow(-4px 0 0 rgba(0,255,255,0.6)); transform: translateX(1px); }
-  30% { filter: drop-shadow(0 0 0 transparent); transform: translateX(0); }
-  45% { filter: drop-shadow(-4px 0 0 rgba(255,0,0,0.6)) drop-shadow(4px 0 0 rgba(0,255,255,0.6)); transform: translateX(-1px); }
+  0%, 8%, 12%, 62%, 66%, 100% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: translateX(0);
+  }
+  10% {
+    filter: drop-shadow(2px 0 0 rgb(var(--rgb-threat) / 0.4)) drop-shadow(-2px 0 0 rgb(var(--rgb-accent) / 0.4));
+    transform: translateX(1px);
+  }
+  64% {
+    filter: drop-shadow(-2px 0 0 rgb(var(--rgb-threat) / 0.4)) drop-shadow(2px 0 0 rgb(var(--rgb-accent) / 0.4));
+    transform: translateX(-1px);
+  }
 }
 
+/* Spectral pass. A full 360deg rotation cycled the carrier through every hue,
+   which read as a colour bug rather than analysis; this stays in a narrow
+   cyan-to-violet arc that looks like a filter sweeping the image. */
 @keyframes spectral-hue-shift {
-  0% { filter: hue-rotate(0deg) saturate(1); }
-  50% { filter: hue-rotate(180deg) saturate(2); }
-  100% { filter: hue-rotate(360deg) saturate(1); }
+  0%, 100% { filter: hue-rotate(0deg) saturate(1.05); }
+  50%      { filter: hue-rotate(45deg) saturate(1.35); }
 }
 
 @keyframes scanline-sweep-vertical {
@@ -636,11 +674,49 @@ button:hover, .btn-interactive:hover {
 }
 
 .animate-rgb-split {
-  animation: rgb-split-flicker 0.2s infinite;
+  animation: rgb-split-flicker 2.6s infinite steps(1, end);
 }
 
 .animate-spectral-shift {
-  animation: spectral-hue-shift 3s infinite linear;
+  animation: spectral-hue-shift 4.5s infinite ease-in-out;
+}
+
+/* Combined carrier-under-scan treatment.
+   .animate-rgb-split and .animate-spectral-shift both set the `animation`
+   shorthand at equal specificity and both animate `filter`, so stacking the two
+   classes on one element silently drops whichever is declared first — they can
+   never compose. This single keyframe does both jobs: a slow spectral arc with
+   two brief tracking slips. Use this on the carrier, not the pair. */
+@keyframes carrier-unstable {
+  0%, 100% {
+    filter: hue-rotate(0deg) saturate(1.05);
+    transform: translateX(0);
+  }
+  10% {
+    filter: hue-rotate(12deg) saturate(1.2) drop-shadow(2px 0 0 rgb(var(--rgb-threat) / 0.4))
+      drop-shadow(-2px 0 0 rgb(var(--rgb-accent) / 0.4));
+    transform: translateX(1px);
+  }
+  12%, 60% {
+    filter: hue-rotate(45deg) saturate(1.35);
+    transform: translateX(0);
+  }
+  64% {
+    filter: hue-rotate(30deg) saturate(1.25) drop-shadow(-2px 0 0 rgb(var(--rgb-threat) / 0.4))
+      drop-shadow(2px 0 0 rgb(var(--rgb-accent) / 0.4));
+    transform: translateX(-1px);
+  }
+  66% {
+    filter: hue-rotate(20deg) saturate(1.15);
+    transform: translateX(0);
+  }
+}
+.animate-carrier-unstable {
+  animation: carrier-unstable 4.5s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-carrier-unstable { animation: none !important; filter: none !important; }
 }
 
 .animate-scanline-vertical {
@@ -789,7 +865,7 @@ button:hover, .btn-interactive:hover {
    panel. Layer under existing GlassPanel content or use standalone. */
 .panel-console {
   background-image:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(112, 162, 168, 0.02) 12%, rgba(2, 9, 18, 0) 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgb(var(--rgb-primary) / 0.02) 12%, rgba(2, 9, 18, 0) 45%),
     linear-gradient(180deg, rgba(18, 32, 38, 0.55) 0%, rgba(9, 18, 24, 0.5) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -838,11 +914,11 @@ button:hover, .btn-interactive:hover {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(0, 243, 255, 0.06) 60%,
-    rgba(0, 243, 255, 0.18) 92%,
-    rgba(0, 243, 255, 0.5) 100%
+    rgb(var(--rgb-accent) / 0.06) 60%,
+    rgb(var(--rgb-accent) / 0.18) 92%,
+    rgb(var(--rgb-accent) / 0.5) 100%
   );
-  box-shadow: 0 6px 14px rgba(0, 243, 255, 0.25);
+  box-shadow: 0 6px 14px rgb(var(--rgb-accent) / 0.25);
   animation: decrypt-band-sweep 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -910,7 +986,7 @@ button:hover, .btn-interactive:hover {
   width: 28%;
   pointer-events: none;
   z-index: 40;
-  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.18) 50%, transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--rgb-accent) / 0.18) 50%, transparent);
   animation: power-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -931,6 +1007,105 @@ button:hover, .btn-interactive:hover {
   animation: charge-ring-spin 2.4s linear infinite;
 }
 
+/* ---- Honeycomb field: tessellated lattice framing the console ---- */
+.honeycomb-field {
+  /* Weighted to the left/right margins; the centre stays clear for content. */
+  -webkit-mask:
+    linear-gradient(90deg, #000 0%, rgba(0,0,0,0.18) 32%, rgba(0,0,0,0.18) 68%, #000 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, #000 22%, #000 78%, rgba(0,0,0,0.35) 100%);
+  -webkit-mask-composite: source-in;
+          mask:
+    linear-gradient(90deg, #000 0%, rgba(0,0,0,0.18) 32%, rgba(0,0,0,0.18) 68%, #000 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, #000 22%, #000 78%, rgba(0,0,0,0.35) 100%);
+          mask-composite: intersect;
+}
+
+/* Base lattice. Reads as etched structure, not wallpaper. */
+.honeycomb-lattice { opacity: 0.30; }
+
+/* Cells that light up — this is what keeps the lattice feeling powered. */
+@keyframes honeycomb-cell-live {
+  0%, 100% { opacity: 0.06; }
+  50%      { opacity: 0.42; }
+}
+.honeycomb-cell-live {
+  fill: var(--color-accent-primary);
+  fill-opacity: 0.16;
+  stroke: var(--color-accent-primary);
+  stroke-width: 1.4;
+  opacity: 0.06;
+  animation: honeycomb-cell-live var(--cell-duration, 7s) ease-in-out infinite;
+  animation-delay: var(--cell-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .honeycomb-cell-live { animation: none !important; opacity: 0.22 !important; }
+}
+
+/* ---- Ambient telemetry: persistent glyph columns drifting behind the console ----
+   CSS-only on purpose. The corner readout in HexagonBackground drives a 100ms
+   setState; multiplying that across ~20 columns would put a constant re-render
+   load on the main thread. Here the glyph strings are generated once and only
+   `transform` animates, so the whole layer stays on the compositor. */
+@keyframes telemetry-fall {
+  from { transform: translate3d(0, -50%, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
+/* Column-level brightness drift, so columns don't read as one flat block.
+   Deliberately `filter`, not `opacity`: opacity here would override the inline
+   per-column opacity that keeps this layer subordinate to module content. */
+@keyframes telemetry-breathe {
+  0%, 100% { filter: brightness(0.55); }
+  50%      { filter: brightness(1.5); }
+}
+
+.telemetry-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  /* Weight the glyphs toward the left/right margins and fade the vertical
+     extremes, so the centre — where module content lives — stays readable. */
+  -webkit-mask:
+    linear-gradient(90deg, #000 0%, transparent 26%, transparent 74%, #000 100%),
+    linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask:
+    linear-gradient(90deg, #000 0%, transparent 26%, transparent 74%, #000 100%),
+    linear-gradient(180deg, transparent 0%, #000 18%, #000 82%, transparent 100%);
+          mask-composite: intersect;
+}
+
+.telemetry-column {
+  position: absolute;
+  top: 0;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  white-space: pre;
+  line-height: 1.05;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  color: var(--color-cyan-primary);
+  will-change: transform;
+  animation:
+    telemetry-fall var(--telemetry-duration, 60s) linear infinite,
+    telemetry-breathe var(--telemetry-breathe, 9s) ease-in-out infinite;
+  animation-delay: var(--telemetry-delay, 0s);
+}
+
+/* Processing state: the field leans in while the system is working. Paired with
+   the scan cues (FILE_ANALYSIS_SCANNER / IMAGE_FORENSICS_SCAN) rather than
+   running hot all the time. */
+.telemetry-field[data-intensity="active"] .telemetry-column {
+  color: var(--color-accent-primary);
+  animation-duration: calc(var(--telemetry-duration, 60s) / 2.5), var(--telemetry-breathe, 9s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .telemetry-column { animation: none !important; opacity: 0.28 !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-data-assemble,
   .animate-hologram-flicker,
@@ -943,4 +1118,614 @@ button:hover, .btn-interactive:hover {
     transform: none;
   }
   .power-sweep::after { display: none; }
+}
+
+/* =====================================================================
+   ARKHAM TABLET CHROME
+   Button and panel treatment modelled on the Arkham VR dossier tablet:
+   bracketed corner frames, a bright outline that fills on hover, a teal
+   ACTIVE register, and amber corner markers used sparingly as accents.
+   ===================================================================== */
+
+.font-display { font-family: var(--font-display); }
+
+/* ---- Bracketed frame: four corner rules drawn just outside the element ---- */
+.tablet-frame {
+  position: relative;
+}
+.tablet-frame::before,
+.tablet-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: var(--frame-color, var(--color-accent-primary));
+  opacity: 0.85;
+  transition: opacity 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+/* Inset, not overhanging. At -2px with a 2px rule these sat directly on top of
+   the host element's own border corner and merged with it into a solid square
+   block instead of reading as a bracket. Pulled inside with a gap so the
+   bracket is legible as its own mark. */
+.tablet-frame::before {
+  top: 3px;
+  left: 3px;
+  border-top: 1.5px solid;
+  border-left: 1.5px solid;
+}
+.tablet-frame::after {
+  bottom: 3px;
+  right: 3px;
+  border-bottom: 1.5px solid;
+  border-right: 1.5px solid;
+}
+.tablet-frame:hover::before,
+.tablet-frame:hover::after {
+  width: 16px;
+  height: 16px;
+  opacity: 1;
+}
+
+/* ---- Primary action button ---- */
+.tablet-btn {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--rgb-accent) / 0.10) 0%,
+    rgb(var(--rgb-accent) / 0.03) 100%
+  );
+  border: 1px solid rgb(var(--rgb-accent) / 0.45);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.tablet-btn:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--rgb-accent) / 0.28) 0%,
+    rgb(var(--rgb-accent) / 0.12) 100%
+  );
+  border-color: var(--color-accent-primary);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgb(var(--rgb-accent) / 0.35), inset 0 0 12px rgb(var(--rgb-accent) / 0.15);
+}
+.tablet-btn:active:not(:disabled) { transform: translateY(1px); }
+.tablet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- ACTIVE register: the teal filled state from the reference ---- */
+.tablet-active {
+  color: #7fffd6;
+  background: rgba(0, 255, 190, 0.10);
+  border: 1px solid rgba(0, 255, 190, 0.55);
+  box-shadow: inset 0 0 14px rgba(0, 255, 190, 0.12), 0 0 10px rgba(0, 255, 190, 0.18);
+}
+
+/* ---- Amber corner marker: a small folded tab, used sparingly ---- */
+.amber-tab { position: relative; }
+.amber-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  border-top: 9px solid var(--color-amber-alert);
+  border-right: 9px solid transparent;
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tablet-frame::before,
+  .tablet-frame::after,
+  .tablet-btn { transition: none; }
+}
+
+/* ---- Hex lattice click ripple ---- */
+@keyframes hex-lattice-ripple {
+  from { r: 4px; opacity: 0.75; }
+  to   { r: 96px; opacity: 0; }
+}
+.hex-lattice-ripple {
+  animation: hex-lattice-ripple 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hex-lattice-ripple { animation-duration: 1ms; }
+}
+
+/* =====================================================================
+   THEMES
+   Every colour utility in this app compiles to var(--color-*), so
+   overriding those variables on the root element retints the entire UI at
+   runtime with no rebuild and no per-component work.
+
+   The --rgb-* channel triplets exist for the many inline rgba()/shadow
+   values in TSX: those cannot consume a hex token and keep an alpha, so
+   they use rgb(var(--rgb-accent) / 0.4) instead.
+
+   Adding a theme = one more block here plus an entry in THEMES in
+   src/lib/themes.ts. Nothing else should need to change.
+   ===================================================================== */
+
+:root,
+:root[data-theme="cyan"] {
+  --color-bg-void: #020912;
+  --color-bg-panel: rgba(18, 32, 38, 0.45);
+  --color-cyan-primary: #70a2a8;
+  --color-cyan-dim: #456c70;
+  --color-cyan-text: #b3e2e6;
+  --color-accent-primary: #00f3ff;
+  --color-amber-alert: #ff9d2e;
+  --color-red-threat: #ff3b4e;
+  /* A real green. This was #70a2a8 (the cyan), which is why nothing in the
+     app ever read as "go" — every verified/active state rendered cyan. */
+  --color-green-verified: #2fffa8;
+  --color-green-active: #2fffa8;
+  /* Pale blue, the counterpart to green in the reference: used for the
+     inverse/secondary action where green marks the primary one. */
+  --color-blue-pale: #b3e2e6;
+  --color-text-primary: #f5f8f9;
+  --color-text-dim: #f5f8f9;
+  --color-border-hairline: rgba(112, 162, 168, 0.15);
+
+  --rgb-accent: 0 243 255;
+  --rgb-primary: 112 162 168;
+  --rgb-threat: 255 59 78;
+  --rgb-amber: 255 157 46;
+  --rgb-green: 47 255 168;
+  --rgb-blue-pale: 179 226 230;
+  --rgb-waveform: 232 244 248;
+}
+
+/* WayneTech red — the Gotham Knights console. Near-black chassis, signal
+   red as the working colour, white reserved for primary readouts. */
+:root[data-theme="crimson"] {
+  --color-bg-void: #0b0406;
+  --color-bg-panel: rgba(42, 20, 24, 0.45);
+  --color-cyan-primary: #a4838a;
+  --color-cyan-dim: #6b4a52;
+  --color-cyan-text: #ffe4e7;
+  --color-accent-primary: #ff1f36;
+  --color-amber-alert: #ffa02e;
+  --color-red-threat: #ff5c5c;
+  /* Slightly desaturated so it sits against the red chassis without vibrating. */
+  --color-green-verified: #34e08c;
+  --color-green-active: #3ee08a;
+  --color-blue-pale: #9fc7d4;
+  --color-waveform: #ffecee;
+  --color-text-primary: #fdf4f5;
+  --color-text-dim: #fdf4f5;
+  --color-border-hairline: rgba(164, 131, 138, 0.20);
+
+  --rgb-accent: 255 31 54;
+  --rgb-primary: 164 131 138;
+  --rgb-threat: 255 92 92;
+  --rgb-amber: 255 160 46;
+  --rgb-green: 62 224 138;
+  --rgb-blue-pale: 159 199 212;
+  --rgb-waveform: 255 236 238;
+}
+
+/* Deep violet — the Gotham Knights menu palette. Cooler and softer than the
+   other two; accent leans magenta so it stays legible on the blue base. */
+:root[data-theme="violet"] {
+  --color-bg-void: #05031a;
+  --color-bg-panel: rgba(28, 22, 62, 0.45);
+  --color-cyan-primary: #737b9e;
+  --color-cyan-dim: #47508a;
+  --color-cyan-text: #e2e0ff;
+  --color-accent-primary: #d633ff;
+  --color-amber-alert: #ffb347;
+  --color-red-threat: #ff4d7d;
+  --color-green-verified: #5cf2b0;
+  --color-green-active: #5cf2b0;
+  --color-blue-pale: #b9c8ff;
+  --color-waveform: #eeecff;
+  --color-text-primary: #f4f1ff;
+  --color-text-dim: #f4f1ff;
+  --color-border-hairline: rgba(115, 123, 158, 0.20);
+
+  --rgb-accent: 214 51 255;
+  --rgb-primary: 115 123 158;
+  --rgb-threat: 255 77 125;
+  --rgb-amber: 255 179 71;
+  --rgb-green: 92 242 176;
+  --rgb-blue-pale: 185 200 255;
+  --rgb-waveform: 238 236 255;
+}
+
+/* ---- hud-target: bracketed corner accents on hover/focus ----
+   Applied here rather than on 151 individual buttons: every interactive
+   element that already opted into .hud-target inherits the Arkham-tablet
+   framing, and per-button state colours stay untouched. The reticle uses
+   ::before/::after, so these brackets use box-shadow on a wrapper-free
+   pseudo-free approach — outline plus inset shadow — to avoid colliding. */
+.hud-target {
+  transition: box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.hud-target:hover:not(:disabled),
+.hud-target:focus-visible:not(:disabled) {
+  box-shadow:
+    inset 2px 2px 0 -1px var(--reticle-color),
+    inset -2px -2px 0 -1px var(--reticle-color),
+    0 0 12px -4px var(--reticle-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-target { transition: none; }
+}
+
+/* ---- Forensic scan overlay: byte lattice ----
+   A grid of nibbles churning and then locking behind a travelling resolve
+   front. Modular by construction, so it fits any panel at any aspect ratio —
+   unlike the fixed 306px ring stack this replaced, which got sliced by narrower
+   containers. */
+@keyframes byte-resolve-front {
+  0%   { transform: translateX(-120%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(660%); opacity: 0; }
+}
+.byte-resolve-front {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--rgb-accent) / 0.10) 40%,
+    rgb(var(--rgb-accent) / 0.30) 50%,
+    rgb(var(--rgb-accent) / 0.10) 60%,
+    transparent
+  );
+  animation: byte-resolve-front 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.byte-lattice {
+  display: grid;
+  gap: 2px;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Each cell rides from unresolved (dim, churning) to locked (bright, steady).
+   The stagger comes from an inline animation-delay keyed to the column. */
+@keyframes byte-cell-lock {
+  0%, 45% {
+    color: var(--color-cyan-dim);
+    background-color: rgb(var(--rgb-primary) / 0.06);
+    box-shadow: none;
+  }
+  55% {
+    color: #ffffff;
+    background-color: rgb(var(--rgb-accent) / 0.35);
+    box-shadow: 0 0 8px rgb(var(--rgb-accent) / 0.5);
+  }
+  100% {
+    color: var(--color-cyan-text);
+    background-color: rgb(var(--rgb-accent) / 0.10);
+    box-shadow: none;
+  }
+}
+.byte-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  min-height: 12px;
+  color: var(--color-cyan-dim);
+  animation: byte-cell-lock 3.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .byte-resolve-front { animation: none; opacity: 0.2; }
+  .byte-cell {
+    animation: none;
+    color: var(--color-cyan-text);
+    background-color: rgb(var(--rgb-accent) / 0.10);
+  }
+}
+
+/* ---- Hex lattice click ripple ---- */
+@keyframes hex-lattice-ripple {
+  from { r: 4px; opacity: 0.75; }
+  to   { r: 96px; opacity: 0; }
+}
+.hex-lattice-ripple {
+  animation: hex-lattice-ripple 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hex-lattice-ripple { animation-duration: 1ms; }
+}
+
+/* =====================================================================
+   THEMES
+   Every colour utility in this app compiles to var(--color-*), so
+   overriding those variables on the root element retints the entire UI at
+   runtime with no rebuild and no per-component work.
+
+   The --rgb-* channel triplets exist for the many inline rgba()/shadow
+   values in TSX: those cannot consume a hex token and keep an alpha, so
+   they use rgb(var(--rgb-accent) / 0.4) instead.
+
+   Adding a theme = one more block here plus an entry in THEMES in
+   src/lib/themes.ts. Nothing else should need to change.
+   ===================================================================== */
+
+:root,
+:root[data-theme="cyan"] {
+  --color-bg-void: #020912;
+  --color-bg-panel: rgba(18, 32, 38, 0.45);
+  --color-cyan-primary: #70a2a8;
+  --color-cyan-dim: #456c70;
+  --color-cyan-text: #b3e2e6;
+  --color-accent-primary: #00f3ff;
+  --color-amber-alert: #ff9d2e;
+  --color-red-threat: #ff3b4e;
+  /* A real green. This was #70a2a8 (the cyan), which is why nothing in the
+     app ever read as "go" — every verified/active state rendered cyan. */
+  --color-green-verified: #2fffa8;
+  --color-green-active: #2fffa8;
+  /* Pale blue, the counterpart to green in the reference: used for the
+     inverse/secondary action where green marks the primary one. */
+  --color-blue-pale: #b3e2e6;
+  --color-text-primary: #f5f8f9;
+  --color-text-dim: #f5f8f9;
+  --color-border-hairline: rgba(112, 162, 168, 0.15);
+
+  --rgb-accent: 0 243 255;
+  --rgb-primary: 112 162 168;
+  --rgb-threat: 255 59 78;
+  --rgb-amber: 255 157 46;
+  --rgb-green: 47 255 168;
+  --rgb-blue-pale: 179 226 230;
+  --rgb-waveform: 232 244 248;
+}
+
+/* WayneTech red — the Gotham Knights console. Near-black chassis, signal
+   red as the working colour, white reserved for primary readouts. */
+:root[data-theme="crimson"] {
+  --color-bg-void: #0b0406;
+  --color-bg-panel: rgba(42, 20, 24, 0.45);
+  --color-cyan-primary: #a4838a;
+  --color-cyan-dim: #6b4a52;
+  --color-cyan-text: #ffe4e7;
+  --color-accent-primary: #ff1f36;
+  --color-amber-alert: #ffa02e;
+  --color-red-threat: #ff5c5c;
+  /* Slightly desaturated so it sits against the red chassis without vibrating. */
+  --color-green-verified: #34e08c;
+  --color-green-active: #3ee08a;
+  --color-blue-pale: #9fc7d4;
+  --color-waveform: #ffecee;
+  --color-text-primary: #fdf4f5;
+  --color-text-dim: #fdf4f5;
+  --color-border-hairline: rgba(164, 131, 138, 0.20);
+
+  --rgb-accent: 255 31 54;
+  --rgb-primary: 164 131 138;
+  --rgb-threat: 255 92 92;
+  --rgb-amber: 255 160 46;
+  --rgb-green: 62 224 138;
+  --rgb-blue-pale: 159 199 212;
+  --rgb-waveform: 255 236 238;
+}
+
+/* Deep violet — the Gotham Knights menu palette. Cooler and softer than the
+   other two; accent leans magenta so it stays legible on the blue base. */
+:root[data-theme="violet"] {
+  --color-bg-void: #05031a;
+  --color-bg-panel: rgba(28, 22, 62, 0.45);
+  --color-cyan-primary: #737b9e;
+  --color-cyan-dim: #47508a;
+  --color-cyan-text: #e2e0ff;
+  --color-accent-primary: #d633ff;
+  --color-amber-alert: #ffb347;
+  --color-red-threat: #ff4d7d;
+  --color-green-verified: #5cf2b0;
+  --color-green-active: #5cf2b0;
+  --color-blue-pale: #b9c8ff;
+  --color-waveform: #eeecff;
+  --color-text-primary: #f4f1ff;
+  --color-text-dim: #f4f1ff;
+  --color-border-hairline: rgba(115, 123, 158, 0.20);
+
+  --rgb-accent: 214 51 255;
+  --rgb-primary: 115 123 158;
+  --rgb-threat: 255 77 125;
+  --rgb-amber: 255 179 71;
+  --rgb-green: 92 242 176;
+  --rgb-blue-pale: 185 200 255;
+  --rgb-waveform: 238 236 255;
+}
+
+/* ---- hud-target: bracketed corner accents on hover/focus ----
+   Applied here rather than on 151 individual buttons: every interactive
+   element that already opted into .hud-target inherits the Arkham-tablet
+   framing, and per-button state colours stay untouched. The reticle uses
+   ::before/::after, so these brackets use box-shadow on a wrapper-free
+   pseudo-free approach — outline plus inset shadow — to avoid colliding. */
+.hud-target {
+  transition: box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.hud-target:hover:not(:disabled),
+.hud-target:focus-visible:not(:disabled) {
+  box-shadow:
+    inset 2px 2px 0 -1px var(--reticle-color),
+    inset -2px -2px 0 -1px var(--reticle-color),
+    0 0 12px -4px var(--reticle-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-target { transition: none; }
+}
+
+/* ---- Engine action button ----
+   Modelled on the reference "ACTIVE" plate: a dark hatched field with a bright
+   coloured rule around it and the label in that same colour, rather than a
+   solid fill with knocked-out dark text. Colour comes from --engine-color so
+   one rule serves the green (decrypt) and pale-blue (encrypt) variants. */
+.engine-btn {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--engine-color, var(--color-green-active));
+  border: 2px solid var(--engine-color, var(--color-green-active));
+  background-color: rgb(0 0 0 / 0.55);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgb(255 255 255 / 0.035) 0 6px,
+    transparent 6px 12px
+  );
+  box-shadow:
+    inset 0 0 22px -6px var(--engine-color, var(--color-green-active)),
+    0 0 14px -6px var(--engine-color, var(--color-green-active));
+  text-shadow: 0 0 10px currentColor;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+/* Inner rule, offset from the border — the doubled frame in the reference. */
+.engine-btn::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid currentColor;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Folded corner tab, top-left. */
+.engine-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-top: 12px solid var(--engine-color, var(--color-green-active));
+  border-right: 12px solid transparent;
+  pointer-events: none;
+}
+
+.engine-btn:hover:not(:disabled) {
+  background-color: rgb(0 0 0 / 0.3);
+  box-shadow:
+    inset 0 0 30px -6px var(--engine-color, var(--color-green-active)),
+    0 0 26px -4px var(--engine-color, var(--color-green-active));
+}
+.engine-btn:hover:not(:disabled)::before { opacity: 0.7; }
+.engine-btn:active:not(:disabled) { transform: translateY(1px); }
+.engine-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .engine-btn { transition: none; }
+}
+
+/* ---- Data wall: ambient character field ----
+   Background texture, not content. Small type, low opacity, fills its box
+   without affecting layout. The previous version scrolled full-width log lines
+   and read as a foreground element competing with the panel behind it. */
+.data-wall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  display: grid;
+  grid-auto-rows: 1em;
+  align-content: start;
+  justify-items: center;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--color-cyan-primary);
+  opacity: var(--wall-intensity, 0.16);
+  /* Fade at every edge so the field dissolves into the panel rather than
+     ending on a hard rectangle. */
+  -webkit-mask: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+          mask: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+}
+
+
+/* ---- Encoding Deck channel resolve ----
+   Each breakout channel wipes in from the bus side on a stagger, so a decode
+   reads as one stream fanning out across sixteen formats rather than sixteen
+   values blinking into place at once. Keyed on a generation counter, so it
+   replays whenever the buffer changes. */
+@keyframes channel-resolve {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+    clip-path: inset(0 100% 0 0);
+  }
+  60% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+.channel-resolve {
+  animation: channel-resolve 380ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* A channel that actually produced output carries a live edge on the bus side;
+   the rest stay inert. This is the difference between "sixteen rows" and
+   "sixteen taps, four of which are carrying signal". */
+.channel-resolve[data-hit] {
+  position: relative;
+}
+.channel-resolve[data-hit]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--color-accent-primary);
+  box-shadow: 0 0 8px -1px var(--color-accent-primary);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel-resolve { animation: none; }
+}
+
+/* ---- Encoding Deck channel port ----
+   Panel material for a single breakout tap: a faint scanline wash and a
+   corner notch, so a settled row reads as a physical port on a bus rather
+   than a bordered rectangle. Kept cheap — one gradient, no animation at
+   rest. */
+.channel-port {
+  clip-path: polygon(0 0, 100% 0, 99% 100%, 0 100%);
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgb(var(--rgb-primary) / 0.045) 0px,
+    rgb(var(--rgb-primary) / 0.045) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+.channel-port:hover {
+  border-color: rgb(var(--rgb-accent) / 0.45);
+}
+/* Corner notch, bottom-right — the cut the clip-path implies, made visible. */
+.channel-port::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  height: 1px;
+  background: rgb(var(--rgb-primary) / 0.35);
+  pointer-events: none;
 }

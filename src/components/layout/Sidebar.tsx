@@ -94,7 +94,7 @@ export default function Sidebar() {
           wasAutoCollapsedRef.current = false;
           playNavTick(); 
         }}
-        className="absolute -right-3 top-12 w-6 h-12 bg-bg-void border border-cyan-primary/30 rounded-r-md flex items-center justify-center text-cyan-primary hover:bg-cyan-primary/20 z-20"
+        className="absolute -right-3 top-[104px] w-6 h-12 bg-bg-void border border-cyan-primary/30 rounded-r-md flex items-center justify-center text-cyan-primary hover:bg-cyan-primary/20 z-30"
         style={{ clipPath: "polygon(0 0, 100% 10%, 100% 90%, 0 100%)" }}
       >
         {isMinimized ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -118,7 +118,7 @@ export default function Sidebar() {
           onClick={() => { if (!currentIdentity) openChallenge(); }}
           aria-label="Belfry emblem"
           className={`relative w-14 h-14 flex items-center justify-center bg-cyan-primary/5 border border-cyan-primary/30 rounded-full animate-breathing shrink-0 transition-shadow duration-300 ${
-            currentIdentity ? "cursor-default" : "cursor-pointer hover:shadow-[0_0_12px_rgba(112,162,168,0.35)]"
+            currentIdentity ? "cursor-default" : "cursor-pointer hover:shadow-[0_0_12px_rgb(var(--rgb-primary) / 0.35)]"
           }`}
         >
           <img src="/assets/icons/belfry_sidebar.png" alt="" className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
@@ -126,7 +126,7 @@ export default function Sidebar() {
         </button>
         {!isMinimized && (
           <div className="overflow-hidden whitespace-nowrap">
-            <h1 className="font-orbitron text-sm font-black tracking-widest text-text-primary uppercase cyan-glow leading-tight">
+            <h1 className="font-display text-sm font-black tracking-widest text-text-primary uppercase cyan-glow leading-tight">
               THE BELFRY
             </h1>
           </div>
@@ -138,7 +138,7 @@ export default function Sidebar() {
         {sections.map((sec, secIdx) => (
           <div key={secIdx} className="space-y-2">
             {!isMinimized && (
-              <h2 className="text-xs font-bold text-text-dim font-orbitron tracking-widest pl-1 opacity-70 flex items-center whitespace-nowrap">
+              <h2 className="text-xs font-bold text-text-dim font-display tracking-widest pl-1 opacity-70 flex items-center whitespace-nowrap">
                 <span className="w-1.5 h-1.5 bg-cyan-primary/40 mr-1.5 inline-block shrink-0" />
                 {sec.title}
               </h2>
