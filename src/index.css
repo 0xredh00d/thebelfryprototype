@@ -45,7 +45,12 @@ button:focus, a:focus, input:focus, textarea:focus, select:focus {
   --color-glow-highlight: #ffffff;
   --color-amber-alert: #ff9d2e;
   --color-red-threat: #ff3b4e;
-  --color-green-verified: #70a2a8;
+  --color-green-verified: #2fffa8;
+  /* "Go" green and its pale-blue counterpart. Declared here so Tailwind emits
+     the utilities; the per-theme blocks at the end of this file override the
+     values. */
+  --color-green-active: #2fffa8;
+  --color-blue-pale: #b3e2e6;
   --color-text-primary: #f5f8f9;
   --color-text-dim: #f5f8f9;
   --color-border-hairline: rgba(112, 162, 168, 0.15);
@@ -1241,7 +1246,13 @@ button:hover, .btn-interactive:hover {
   --color-accent-primary: #00f3ff;
   --color-amber-alert: #ff9d2e;
   --color-red-threat: #ff3b4e;
-  --color-green-verified: #70a2a8;
+  /* A real green. This was #70a2a8 (the cyan), which is why nothing in the
+     app ever read as "go" — every verified/active state rendered cyan. */
+  --color-green-verified: #2fffa8;
+  --color-green-active: #2fffa8;
+  /* Pale blue, the counterpart to green in the reference: used for the
+     inverse/secondary action where green marks the primary one. */
+  --color-blue-pale: #b3e2e6;
   --color-text-primary: #f5f8f9;
   --color-text-dim: #f5f8f9;
   --color-border-hairline: rgba(112, 162, 168, 0.15);
@@ -1250,6 +1261,8 @@ button:hover, .btn-interactive:hover {
   --rgb-primary: 112 162 168;
   --rgb-threat: 255 59 78;
   --rgb-amber: 255 157 46;
+  --rgb-green: 47 255 168;
+  --rgb-blue-pale: 179 226 230;
 }
 
 /* WayneTech red — the Gotham Knights console. Near-black chassis, signal
@@ -1263,7 +1276,10 @@ button:hover, .btn-interactive:hover {
   --color-accent-primary: #ff2b3d;
   --color-amber-alert: #ffa02e;
   --color-red-threat: #ff5c5c;
-  --color-green-verified: #c8434f;
+  /* Slightly desaturated so it sits against the red chassis without vibrating. */
+  --color-green-verified: #3ee08a;
+  --color-green-active: #3ee08a;
+  --color-blue-pale: #9fc7d4;
   --color-text-primary: #fdf4f5;
   --color-text-dim: #fdf4f5;
   --color-border-hairline: rgba(200, 67, 79, 0.18);
@@ -1272,6 +1288,8 @@ button:hover, .btn-interactive:hover {
   --rgb-primary: 200 67 79;
   --rgb-threat: 255 92 92;
   --rgb-amber: 255 160 46;
+  --rgb-green: 62 224 138;
+  --rgb-blue-pale: 159 199 212;
 }
 
 /* Deep violet — the Gotham Knights menu palette. Cooler and softer than the
@@ -1285,7 +1303,9 @@ button:hover, .btn-interactive:hover {
   --color-accent-primary: #b06bff;
   --color-amber-alert: #ffb347;
   --color-red-threat: #ff4d7d;
-  --color-green-verified: #8f7fd4;
+  --color-green-verified: #5cf2b0;
+  --color-green-active: #5cf2b0;
+  --color-blue-pale: #b9c8ff;
   --color-text-primary: #f4f1ff;
   --color-text-dim: #f4f1ff;
   --color-border-hairline: rgba(143, 127, 212, 0.18);
@@ -1294,6 +1314,8 @@ button:hover, .btn-interactive:hover {
   --rgb-primary: 143 127 212;
   --rgb-threat: 255 77 125;
   --rgb-amber: 255 179 71;
+  --rgb-green: 92 242 176;
+  --rgb-blue-pale: 185 200 255;
 }
 
 /* ---- hud-target: bracketed corner accents on hover/focus ----

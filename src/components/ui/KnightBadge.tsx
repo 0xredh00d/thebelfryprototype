@@ -32,33 +32,33 @@ export default function KnightBadge() {
       aria-label={`Active operative: ${label}. Open session panel.`}
       className="flex items-center gap-2.5 border-l border-border-hairline/20 pl-4 cursor-pointer group"
     >
+      {/* The chrome (frame, backing, glow) is themed; only the sigil itself
+          carries the knight's colour. Previously the whole badge was painted in
+          that hardcoded accent and spun a dashed ring, so e.g. Red Hood's
+          saturated red rotated against cyan chrome and read as a foreign
+          element rather than part of the console. */}
       <span
-        className={`relative w-10 h-10 shrink-0 flex items-center justify-center rounded-full border transition-shadow duration-300 ${
-          reduce ? "" : "animate-breathing"
-        }`}
-        style={{
-          borderColor: `${accent}66`,
-          backgroundColor: `${accent}0d`,
-          boxShadow: `0 0 10px ${accent}33`,
-        }}
+        className="tablet-frame relative w-10 h-10 shrink-0 flex items-center justify-center border border-border-hairline/30 bg-bg-void/60 transition-shadow duration-300 group-hover:border-accent-primary/40"
+        style={{ "--frame-color": "var(--color-accent-primary)" } as React.CSSProperties}
       >
-        {/* Sweep ring, as on the sidebar emblem — the badge reads as live, not static. */}
+        {/* A slow inner glow replaces the rotating ring: still alive, but it
+            does not draw the eye away from the module content. */}
         {!reduce && (
           <span
-            className="absolute inset-0 rounded-full border border-dashed animate-radar-sweep"
-            style={{ borderColor: `${accent}2b` }}
+            className="absolute inset-[3px] animate-hex-pulse-flicker pointer-events-none"
+            style={{ backgroundColor: `${accent}14` }}
           />
         )}
         <img
           src={sigil}
           alt=""
           draggable={false}
-          className="w-8 h-8 object-contain"
+          className="w-7 h-7 object-contain relative z-10"
           style={{
             // Same optical correction as the board pin: wide, flat marks read
             // smaller than upright ones at an identical box size.
             transform: `scale(${knight.sigilScale ?? 1})`,
-            filter: `drop-shadow(0 0 5px ${accent}b3)`,
+            filter: `drop-shadow(0 0 4px ${accent}99)`,
           }}
         />
       </span>
