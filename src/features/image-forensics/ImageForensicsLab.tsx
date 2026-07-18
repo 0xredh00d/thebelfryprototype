@@ -718,8 +718,8 @@ export default function ImageForensicsLab() {
       <div className="col-span-12 lg:col-span-7 flex flex-col space-y-4 min-h-0">
 
         <GlassPanel className="p-4 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex justify-between items-start gap-4">
+            <div className="min-w-0">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-4 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_8px_var(--color-accent-primary)]" />
                 <h1 className="font-display text-sm font-black tracking-widest text-cyan-text uppercase">
