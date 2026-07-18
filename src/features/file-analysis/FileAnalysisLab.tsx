@@ -7,7 +7,6 @@ import {
   Database,
   Search,
   Plus,
-  Compass,
   Trash2,
   Check,
   ShieldCheck,
@@ -24,6 +23,7 @@ import CorrelationNetwork from "../../components/ui/CorrelationNetwork";
 import DataStream from "../../components/react-bits/DataStream";
 import TreeGrowth from "../../components/react-bits/TreeGrowth";
 import BinaryRain from "../../components/react-bits/BinaryRain";
+import BinaryScanner from "../../components/ui/BinaryScanner";
 import {
   playSuccessChime,
   playPinClick,
@@ -32,7 +32,6 @@ import {
   playFileAnalysisComplete,
   playFileAnalysisScanner,
   playScanOpen,
-  playBinaryScanLoop,
   playBakeFailure
 } from "../../lib/soundEngine";
 import { useAppStore } from "../../store/appStore";
@@ -65,11 +64,6 @@ const TACTICAL_BINARY_PRESETS: BinaryPreset[] = [];
  */
 const MAX_CARRIER_BYTES = 10 * 1024 * 1024;
 
-// Sector sweep geometry. Offsets read left-to-right, top-to-bottom, so the map
-// is laid out the same way the hex dump below it is.
-const SECTOR_COLS = 24;
-const SECTOR_ROWS = 9;
-const SECTOR_TOTAL = SECTOR_COLS * SECTOR_ROWS;
 
 interface CarrierRejection {
   code: "OVERSIZE" | "EMPTY" | "UNREADABLE";
@@ -103,32 +97,11 @@ export default function FileAnalysisLab() {
   // Real byte-frequency histogram of the loaded carrier, kept for the entropy
   // strip so that readout is driven by the file rather than decorated.
   const [byteHistogram, setByteHistogram] = useState<number[] | null>(null);
-  // Live sector sweep. Each entry is one sector's normalised entropy, appended
-  // as the inspector actually reaches and measures it.
-  const [sectorMap, setSectorMap] = useState<number[]>([]);
-  const carrierBytesRef = useRef<Uint8Array | null>(null);
-  const scanSoundRef = useRef<{ stop: () => void } | null>(null);
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sound lifecycle for scanning
-  useEffect(() => {
-    if (isScanning) {
-      if (!scanSoundRef.current) {
-        scanSoundRef.current = playBinaryScanLoop();
-      }
-    } else {
-      if (scanSoundRef.current) {
-        scanSoundRef.current.stop();
-        scanSoundRef.current = null;
-      }
-    }
-    return () => {
-      if (scanSoundRef.current) {
-        scanSoundRef.current.stop();
-        scanSoundRef.current = null;
-      }
-    };
-  }, [isScanning]);
+  // Scan audio deliberately lives in BinaryScanner, which owns the loop for
+  // the whole scanner family. The lab used to drive playBinaryScanLoop itself;
+  // keeping that here as well would start the loop twice and stack it.
 
   // Current active data lookup
   const currentData = useMemo(() => {
@@ -195,8 +168,6 @@ export default function FileAnalysisLab() {
     setCustomMetadata(null);
     setByteHistogram(null);
     setCarvedFiles([]);
-    setSectorMap([]);
-    carrierBytesRef.current = null;
     setScanComplete(false);
     addLog(`CARRIER REJECTED (${code}): ${headline}`, "warning", "SYS");
   };
@@ -422,9 +393,6 @@ export default function FileAnalysisLab() {
           : `FILE IS VALIDATED: Parsed character envelopes and hexadecimal structures match the claimed '${extension}' extension signature.`
       });
 
-      // Kept so the inspector sweep has real bytes to walk — it computes
-      // per-sector entropy live rather than animating a counter.
-      carrierBytesRef.current = fullBytes;
 
       addLog(`PARSED HEX HEADERS FOR UPLOADED CARRIER: ${file.name.toUpperCase()}`, "info", "SYS");
       
@@ -438,21 +406,16 @@ export default function FileAnalysisLab() {
   /**
    * Launch the inspector sweep.
    *
-   * This used to tick a counter from 0 to 100 and then flip scanComplete — the
-   * bar was pure theatre, unrelated to any work. It now walks the carrier in
-   * SECTOR_TOTAL slices and computes each slice's Shannon entropy as it
-   * arrives, so the head position, the progress figure and the sector map are
-   * all the same real measurement. Every sector the sweep lights up is a
-   * sector it actually just measured.
+   * Note this paces a review of results the parser already produced at drop
+   * time — it is presentation, not measurement. An earlier revision walked the
+   * buffer computing per-sector entropy to drive this honestly, but that only
+   * existed to feed a sector map that has since been cut, so the work went
+   * with it rather than being left computing values nothing reads.
    */
   const triggerForensicScan = () => {
-    const bytes = carrierBytesRef.current;
-    if (!bytes) return;
-
     setIsScanning(true);
     setScanProgress(0);
     setScanComplete(false);
-    setSectorMap([]);
     playFileAnalysisScanner();
 
     if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
@@ -465,55 +428,13 @@ export default function FileAnalysisLab() {
       "MAPPING signature extension indices..."
     ];
 
-    const sectorLen = Math.max(1, Math.ceil(bytes.length / SECTOR_TOTAL));
-
-    /**
-     * Ceiling to normalise each sector against.
-     *
-     * The naive choice is log2(256) = 8 bits, but a sector only holds a few
-     * hundred bytes, and a few hundred samples spread over 256 bins cannot
-     * reach 8 bits however random they are — measured, genuinely random
-     * sectors topped out around 0.92 and the "packed" tier never fired at all.
-     * Subtracting the finite-sample bias, (K-1)/(2N ln2), gives the entropy a
-     * uniform stream of this size would actually be expected to show, so
-     * saturation stays comparable across carriers of different sizes.
-     */
-    const bins = Math.min(256, sectorLen);
-    const ceiling = Math.max(
-      0.5,
-      Math.log2(bins) - (bins - 1) / (2 * sectorLen * Math.LN2),
-    );
-
-    const sectorEntropy = (start: number) => {
-      const end = Math.min(start + sectorLen, bytes.length);
-      const counts = new Uint32Array(256);
-      for (let i = start; i < end; i++) counts[bytes[i]]++;
-      const len = end - start;
-      if (len <= 0) return 0;
-      let e = 0;
-      for (let j = 0; j < 256; j++) {
-        if (counts[j] > 0) {
-          const p = counts[j] / len;
-          e -= p * Math.log2(p);
-        }
-      }
-      return Math.min(1, e / ceiling);
-    };
-
-    let sector = 0;
-    const PER_TICK = 6;
+    let progress = 0;
     scanIntervalRef.current = setInterval(() => {
-      const batch: number[] = [];
-      for (let n = 0; n < PER_TICK && sector < SECTOR_TOTAL; n++, sector++) {
-        batch.push(sectorEntropy(sector * sectorLen));
-      }
-      setSectorMap((prev) => [...prev, ...batch]);
-
-      const progress = Math.round((sector / SECTOR_TOTAL) * 100);
+      progress = Math.min(100, progress + 4);
       setScanProgress(progress);
       setScanMessage(messages[Math.min(messages.length - 1, Math.floor((progress / 100) * messages.length))]);
 
-      if (sector >= SECTOR_TOTAL) {
+      if (progress >= 100) {
         if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
         setIsScanning(false);
         setScanComplete(true);
@@ -583,8 +504,6 @@ ${currentData.threatSummary}`;
     setRejection(null);
     setByteHistogram(null);
     setCarvedFiles([]);
-    setSectorMap([]);
-    carrierBytesRef.current = null;
     if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
     setIsScanning(false);
   };
@@ -654,12 +573,6 @@ ${currentData.threatSummary}`;
           onDrop={handleDrop}
           clipSize="md"
         >
-          {/* Scanner Overlay */}
-          {isScanning && (
-            <div className="absolute inset-0 bg-cyan-primary/[0.02] border border-cyan-primary/20 pointer-events-none overflow-hidden z-20">
-              <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_var(--color-accent-primary)] animate-scanline-vertical" />
-            </div>
-          )}
 
           <div className="border-b border-border-hairline/20 pb-2 mb-3 flex justify-between items-center">
             <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
@@ -872,10 +785,16 @@ ${currentData.threatSummary}`;
                 <button
                   disabled={isScanning}
                   onClick={triggerForensicScan}
-                  className="hud-target w-full py-3 bg-cyan-primary text-bg-void hover:bg-white hover:shadow-[0_0_20px_rgb(var(--rgb-accent) / 0.6)] active:scale-[0.98] transition-all duration-200 text-xs font-black tracking-widest font-display uppercase disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2 relative z-10"
-                  style={{ clipPath: "polygon(0 0, 100% 0, 96% 100%, 0 100%)" }}
+                  onMouseEnter={() => playHoverEvidence()}
+                  className="engine-btn hud-target w-full text-sm py-4 cursor-pointer flex items-center justify-center space-x-2 relative z-10 disabled:pointer-events-none"
+                  style={{
+                    clipPath:
+                      "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                    "--engine-color": "var(--color-accent-primary)",
+                    "--reticle-color": "var(--color-accent-primary)",
+                  } as React.CSSProperties}
                 >
-                  <Cpu className={`w-4 h-4 text-bg-void ${isScanning ? 'animate-radar-sweep' : ''}`} />
+                  <Cpu className={`w-5 h-5 ${isScanning ? 'animate-radar-sweep' : ''}`} />
                   <span>{isScanning ? 'INSPECTING...' : 'LAUNCH HEURISTIC FILE INSPECTOR'}</span>
                 </button>
               </div>
@@ -884,106 +803,92 @@ ${currentData.threatSummary}`;
           )}
         </GlassPanel>
 
-        {/* ================= CARRIER SECTOR MAP =================
-            Fills the dead space under the buffer port, and doubles as the
-            inspector's readout: during a sweep each cell lights as its sector
-            is actually measured, so the animation is the work rather than a
-            decoration laid over it. With no carrier mounted it idles as an
-            ambient field. */}
-        <GlassPanel className="p-4 flex flex-col" clipSize="sm">
-          <div className="border-b border-border-hairline/20 pb-2 mb-3 flex justify-between items-center">
-            <h3 className="font-display text-xs font-black tracking-widest text-cyan-text flex items-center uppercase">
-              <Compass className={`w-3.5 h-3.5 mr-2 text-cyan-primary ${isScanning ? "animate-radar-sweep" : ""}`} />
-              CARRIER SECTOR MAP
-            </h3>
-            <span className="font-mono text-[12px] text-text-dim tracking-widest tabular-nums">
-              {carrierMounted                ? `${sectorMap.length}/${SECTOR_TOTAL}`
-                : "IDLE"}
+        {/* ================= IDLE DIAGNOSTICS RETICLE =================
+            Purely ambient — it reports nothing and is not interactive. It
+            exists to stop the column dead-ending below the buffer port, and to
+            keep the console feeling powered while it waits. Motion is all CSS
+            transform/opacity so it costs nothing next to the scanner. */}
+        <GlassPanel className="p-4 flex-1 flex flex-col min-h-[200px] relative overflow-hidden" clipSize="sm">
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.04] pointer-events-none" />
+
+          <div className="flex items-center justify-between border-b border-border-hairline/20 pb-2 mb-2">
+            <span className="font-display text-[13px] font-black tracking-widest text-cyan-text/70 uppercase flex items-center">
+              <span className="w-1.5 h-1.5 bg-cyan-primary mr-2 inline-block animate-ping-cyan" />
+              DIAGNOSTIC IDLE
+            </span>
+            <span className="font-mono text-[12px] text-text-dim/50 tracking-widest uppercase">
+              Nominal
             </span>
           </div>
 
-          <div
-            className="grid gap-px bg-bg-void/60 border border-border-hairline/10 p-1.5"
-            style={{ gridTemplateColumns: `repeat(${SECTOR_COLS}, minmax(0, 1fr))` }}
-          >
-            {Array.from({ length: SECTOR_TOTAL }, (_, idx) => {
-              const measured = idx < sectorMap.length;
-              const isHead = isScanning && idx === sectorMap.length - 1;
-              const entropy = measured ? sectorMap[idx] : 0;
+          <div className="flex-1 flex items-center justify-center relative min-h-0">
+            <svg
+              viewBox="0 0 200 200"
+              className="w-full h-full max-h-[220px] text-cyan-primary pointer-events-none"
+              aria-hidden="true"
+            >
+              {/* Outer dashed ring, slow forward rotation */}
+              <circle
+                cx="100" cy="100" r="82"
+                fill="none" stroke="currentColor" strokeWidth="1"
+                strokeDasharray="3 7"
+                className="opacity-25 origin-center animate-[spin_70s_linear_infinite]"
+              />
+              {/* Counter-rotating inner ring — the opposing drift is what keeps
+                  it reading as machinery rather than a loading spinner. */}
+              <circle
+                cx="100" cy="100" r="58"
+                fill="none" stroke="currentColor" strokeWidth="1"
+                strokeDasharray="18 10"
+                className="opacity-20 origin-center animate-[spin_45s_linear_infinite_reverse]"
+              />
+              <circle
+                cx="100" cy="100" r="34"
+                fill="none" stroke="currentColor" strokeWidth="0.75"
+                className="opacity-25"
+              />
 
-              // No carrier: ambient field. The stagger runs on the diagonal so
-              // the flicker drifts across the grid instead of pulsing as one
-              // block.
-              if (!carrierMounted) {
-                const row = Math.floor(idx / SECTOR_COLS);
-                const col = idx % SECTOR_COLS;
+              {/* Perimeter ticks, longer every quarter */}
+              {Array.from({ length: 32 }).map((_, i) => {
+                const a = (i * 360) / 32;
+                const rad = (a * Math.PI) / 180;
+                const major = i % 8 === 0;
+                const r1 = 86;
+                const r2 = major ? 96 : 91;
                 return (
-                  <div
-                    key={idx}
-                    className="aspect-square bg-cyan-primary/20 animate-hex-pulse-flicker"
-                    style={{ animationDelay: `${((row + col) % 12) * 0.35}s` }}
+                  <line
+                    key={i}
+                    x1={100 + r1 * Math.cos(rad)} y1={100 + r1 * Math.sin(rad)}
+                    x2={100 + r2 * Math.cos(rad)} y2={100 + r2 * Math.sin(rad)}
+                    stroke="currentColor" strokeWidth={major ? 1.4 : 0.7}
+                    className={major ? "opacity-50" : "opacity-25"}
                   />
                 );
-              }
+              })}
 
-              return (
-                <div
-                  key={idx}
-                  title={
-                    measured
-                      ? `SECTOR ${idx} — ${(entropy * 100).toFixed(0)}% saturation`
-                      : `SECTOR ${idx} — unmeasured`
-                  }
-                  className={`aspect-square transition-all duration-300 ${
-                    isHead
-                      ? "bg-white shadow-[0_0_8px_var(--color-accent-primary)] scale-125 relative z-10"
-                      : measured
-                        ? entropy > 0.92
-                          ? "bg-amber-alert"
-                          : "bg-cyan-primary"
-                        : "bg-border-hairline/15"
-                  }`}
-                  style={
-                    measured && !isHead
-                      ? { opacity: 0.22 + entropy * 0.78 }
-                      : undefined
-                  }
-                />
-              );
-            })}
+              {/* Sweep arm */}
+              <g className="origin-center animate-[spin_9s_linear_infinite]">
+                <defs>
+                  <linearGradient id="fa-idle-sweep" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
+                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                <path d="M 100 100 L 182 100 A 82 82 0 0 0 158 42 Z" fill="url(#fa-idle-sweep)" opacity="0.28" />
+                <line x1="100" y1="100" x2="182" y2="100" stroke="currentColor" strokeWidth="1" className="opacity-60" />
+              </g>
+
+              {/* Crosshair */}
+              <line x1="100" y1="10" x2="100" y2="30" stroke="currentColor" strokeWidth="0.75" className="opacity-35" />
+              <line x1="100" y1="170" x2="100" y2="190" stroke="currentColor" strokeWidth="0.75" className="opacity-35" />
+              <line x1="10" y1="100" x2="30" y2="100" stroke="currentColor" strokeWidth="0.75" className="opacity-35" />
+              <line x1="170" y1="100" x2="190" y2="100" stroke="currentColor" strokeWidth="0.75" className="opacity-35" />
+
+              {/* Core */}
+              <circle cx="100" cy="100" r="4" fill="currentColor" className="opacity-70 animate-hex-pulse-flicker" />
+              <circle cx="100" cy="100" r="12" fill="none" stroke="currentColor" strokeWidth="0.75" className="opacity-30" />
+            </svg>
           </div>
-
-          <div className="flex justify-between items-center text-[12px] text-text-dim/60 font-mono tracking-widest mt-1.5">
-            <span>0x00000000</span>
-            <span className="uppercase">
-              {isScanning
-                ? "SWEEPING"
-                : scanComplete
-                  ? "SWEEP COMPLETE"
-                  : carrierMounted
-                    ? "AWAITING SWEEP"
-                    : "NO CARRIER"}
-            </span>
-            <span>EOF</span>
-          </div>
-
-          {/* Legend only earns its space once there is something to read. */}
-          {sectorMap.length > 0 && (
-            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border-hairline/10 text-[12px] font-mono text-text-dim/70 uppercase tracking-wider">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-cyan-primary" style={{ opacity: 0.3 }} />
-                Low
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-cyan-primary" />
-                Dense
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-amber-alert" />
-                Packed / encrypted
-              </span>
-            </div>
-          )}
         </GlassPanel>
 
       </div>
@@ -1011,7 +916,15 @@ ${currentData.threatSummary}`;
           /* Analysis Active Views */
           <>
             {/* Hex Dump Viewer Panel */}
-            <GlassPanel className="p-4 flex flex-col min-h-[300px] flex-1" clipSize="md">
+            <GlassPanel className="p-4 flex flex-col min-h-[300px] flex-1 relative overflow-hidden" clipSize="md">
+              {/* The module's scanner, finally the same one its siblings use.
+                  Image Forensics has ImageScanner and Audio Forensics has
+                  AudioScanner; File Analysis had a hand-rolled 2px line sliding
+                  down instead. Covering the dump while it runs also buys the
+                  completion reveal the module is supposed to have — the decoded
+                  hex is uncovered rather than just sitting there the whole time. */}
+              <BinaryScanner active={isScanning} scanLabel="DECOMPILING CARRIER" />
+
               <div className="border-b border-border-hairline/20 pb-2 mb-3.5 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
                   <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
@@ -1051,11 +964,6 @@ ${currentData.threatSummary}`;
                   <div className="flex-1 overflow-y-auto max-h-[220px] font-share text-[13px] text-text-dim bg-bg-void/70 border border-border-hairline/10 p-2 divide-y divide-border-hairline/5 space-y-1 select-text scrollbar-thin relative overflow-hidden">
                     {scanComplete && (
                       <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent via-cyan-primary/20 to-cyan-primary/50 border-b border-cyan-primary animate-scanline-sweep pointer-events-none z-10 mix-blend-screen" />
-                    )}
-                    {isScanning && (
-                      <div className="absolute inset-0 pointer-events-none z-10 mix-blend-screen bg-cyan-primary/[0.01]">
-                        <div className="absolute inset-x-0 h-0.5 bg-cyan-primary/40 shadow-[0_0_8px_var(--color-accent-primary)] animate-scanline-vertical" />
-                      </div>
                     )}
                     {currentData.hexData.map((row, idx) => {
                       const isRelevant = idx === 0; // First row contains the magic bytes signature
