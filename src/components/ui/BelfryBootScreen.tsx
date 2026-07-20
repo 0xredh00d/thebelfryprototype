@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { getAudioContext, playSystemBoot, getSystemBootDuration } from "../../lib/soundEngine";
+import { assetUrl } from "../../lib/assetUrl";
 
 /** Used only if the boot sample has not decoded yet; the real pace comes from
  *  the sample's own length so picture and sound land together. */
@@ -14,7 +15,9 @@ interface BelfryBootScreenProps {
   onComplete: () => void;
 }
 
-const MARK_SRC = "url(/assets/icons/iconbelfry.png)";
+// Wrapped in url() for a CSS mask, so this never looks like an asset reference
+// to Vite and is not rewritten for a sub-path deploy — hence assetUrl().
+const MARK_SRC = `url(${assetUrl("/assets/icons/iconbelfry.png")})`;
 
 /**
  * Telemetry gibberish. Generated rather than hardcoded, and re-rolled on a
