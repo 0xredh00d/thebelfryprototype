@@ -22,6 +22,16 @@
 [build.environment]
   NODE_VERSION = "20"
 
+  # Netlify scans build output for the values of environment variables and
+  # fails the build when it finds them. That check assumes every variable is a
+  # secret. These two are the opposite: the VITE_ prefix means Vite compiles
+  # them into the bundle on purpose, and they are public by design — the
+  # security boundary is disabled signups plus Row Level Security.
+  #
+  # Without this, the first deploy fails with "Secrets detected in build
+  # output". Only ever list genuinely public values here.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+
 # The app has no client-side router, but a refresh on any path should still
 # land on the app rather than Netlify's 404.
 [[redirects]]
