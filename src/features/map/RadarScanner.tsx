@@ -15,17 +15,29 @@ import React, { useId, useMemo } from "react";
  */
 
 const VIEW_W = 300;
-const VIEW_H = 170;
+const VIEW_H = 150;
 
-/** Centre of the dish, in viewBox units. */
-const CX = 150;
-const CY = 104;
+/**
+ * Centre of the dish, in viewBox units.
+ *
+ * Held at the exact middle of the viewBox: the SVG scales with
+ * `xMidYMid meet`, so a centred origin is what keeps the dish centred in the
+ * panel at any panel aspect ratio.
+ */
+const CX = VIEW_W / 2;
+const CY = VIEW_H / 2;
 
 /** Plane tilt: rings are this much flatter vertically than horizontally. */
 const SQUASH = 0.34;
 
 /** Ring radii, outermost first. */
 const RINGS = [128, 96, 64, 32];
+
+/**
+ * Angular width of the sweep wedge, radians. The wedge trails *behind* the arm
+ * — the arm sits at 0 and the wedge covers the bearings it has just passed.
+ */
+const SWEEP_SPREAD = (46 * Math.PI) / 180;
 
 interface Contact {
   /** Angle around the dish, radians. */
@@ -150,8 +162,17 @@ export default function RadarScanner({ className = "" }: { className?: string })
 
         {/* The sweep arm, rotating in-plane. */}
         <g className="radar-sweep">
+          {/* Both ends sit on the outer ring, so the wedge stays inside the
+              dish. Taking the endpoints as literal offsets — as this once did —
+              puts the corners past the rim and the arc bulges further still,
+              which is what made the sweep look like it was falling out of the
+              dish toward one corner. */}
           <path
-            d={`M 0 0 L ${RINGS[0]} ${-RINGS[0] * 0.42} A ${RINGS[0]} ${RINGS[0]} 0 0 1 ${RINGS[0]} ${RINGS[0] * 0.42} Z`}
+            d={
+              `M 0 0 ` +
+              `L ${(RINGS[0] * Math.cos(-SWEEP_SPREAD)).toFixed(2)} ${(RINGS[0] * Math.sin(-SWEEP_SPREAD)).toFixed(2)} ` +
+              `A ${RINGS[0]} ${RINGS[0]} 0 0 1 ${RINGS[0]} 0 Z`
+            }
             fill={`url(#${gradId})`}
           />
           <line

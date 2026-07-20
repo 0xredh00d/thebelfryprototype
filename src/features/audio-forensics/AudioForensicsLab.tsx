@@ -1490,7 +1490,7 @@ ${currentSample.analysisSummary}`;
 
   return (
     <div
-      className="h-full w-full p-4 flex flex-col space-y-4 overflow-y-auto font-chakra select-none text-text-primary relative"
+      className="h-full w-full p-4 flex flex-col space-y-4 overflow-hidden font-chakra select-none text-text-primary relative"
       id="audio-forensics-root"
       onDragEnter={handleDrag}
       onDragOver={handleDrag}
@@ -1531,7 +1531,11 @@ ${currentSample.analysisSummary}`;
       </GlassPanel>
 
       {/* 2. MAIN WAVEFORM CONSOLE (Full Width) */}
-      <GlassPanel className="p-4 flex flex-col" clipSize="md">
+      {/* The waveform stack is the one panel here that can give up height, so it
+          absorbs the shortfall on a 900px-tall screen — the transport, the
+          status strip and the analysis grid below it all keep their natural
+          size instead of the whole console sliding under a page scroll. */}
+      <GlassPanel className="p-4 flex-1 min-h-0 flex flex-col" clipSize="md">
         <div className="border-b border-border-hairline/20 pb-2 mb-3.5 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <span className="w-1.5 h-3.5 bg-cyan-primary transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />

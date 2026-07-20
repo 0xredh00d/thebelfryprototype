@@ -381,7 +381,12 @@ export default function EncodingLab() {
   }, [inputText]);
 
   return (
-    <div className="h-full w-full p-4 grid grid-cols-12 content-start gap-4 overflow-y-auto font-chakra select-none">
+    // One full-height row, not an auto row that scrolls. An auto row sizes to
+    // its content, which left the columns free to grow past the viewport and
+    // scroll the whole console — on a 900px-tall screen the deck ran ~450px
+    // over. A definite row height is also what lets the panels below resolve
+    // `flex-1` against real space and scroll internally instead.
+    <div className="h-full w-full p-4 grid grid-cols-12 grid-rows-[minmax(0,1fr)] gap-4 overflow-hidden font-chakra select-none">
       
       {/* ================= LEFT COLUMN: CENTRAL SIGNAL SOURCE (INPUT & SYSTEM MONITOR) ================= */}
       <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 min-h-0">
@@ -588,12 +593,12 @@ export default function EncodingLab() {
             </div>
           </div>
 
-          {/* Bounded with max-h, not just flex-1 + min-h-0. This panel sits in a
-              grid row that sizes to its content, so no ancestor ever gives it a
-              definite height and overflow-y-auto could never engage — "show all"
-              grew the container to ~2600px and pushed the page down instead of
-              scrolling inside it. */}
-          <div className="flex-1 min-h-0 max-h-[72vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1 hud-scroll-hidden">
+          {/* `flex-1 min-h-0` is enough now that the grid row above has a
+              definite height: overflow-y-auto engages against real space, so
+              "show all" scrolls inside this panel rather than growing it. It
+              previously needed a `max-h` cap only because no ancestor bounded
+              it and the list grew the page to ~2600px instead. */}
+          <div className="flex-1 min-h-0 space-y-3 overflow-y-auto overflow-x-hidden pr-1 hud-scroll-hidden">
             {(() => {
               const rowsData = [
                 {
@@ -926,8 +931,12 @@ export default function EncodingLab() {
       </div>
 
       {/* ================= RIGHT COLUMN: CASCADE PIPELINE & REFERENCE (SECONDARY RAIL) ================= */}
-      <div className="col-span-12 xl:col-span-3 flex flex-col space-y-4">
-        
+      {/* The rail carries three stacked cards whose combined natural height
+          exceeds a 900px-tall screen. It scrolls as a rail rather than letting
+          the cards shrink into each other — squeezing them clipped the cascade
+          controls — and the console itself stays fixed. */}
+      <div className="col-span-12 xl:col-span-3 flex flex-col space-y-4 min-h-0 overflow-y-auto hud-scroll-hidden pr-1">
+
         {/* Cascade sequential encoding pipeline (Subtle styled secondary card) */}
         {/* The rail was left in a deliberately washed-out treatment — near
             transparent fill, hairline borders at a tenth opacity, no corner
@@ -935,7 +944,7 @@ export default function EncodingLab() {
             port channels. It read as disabled rather than secondary. It carries
             the same material now; hierarchy comes from size and density, not
             from draining the contrast out of it. */}
-        <GlassPanel className="panel-console p-4 flex-1 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
+        <GlassPanel className="panel-console p-4 flex-1 shrink-0 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
           <div>
             <div className="border-b border-border-hairline/25 pb-2 mb-3 flex justify-between items-start">
               <div>
@@ -1049,7 +1058,7 @@ export default function EncodingLab() {
         </GlassPanel>
 
         {/* Arbitrary Precision Big Integer Coder */}
-        <GlassPanel className="panel-console p-4 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
+        <GlassPanel className="panel-console p-4 shrink-0 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
           <div>
             <div className="border-b border-border-hairline/25 pb-2 mb-3 flex justify-between items-start">
               <div>
@@ -1166,7 +1175,7 @@ export default function EncodingLab() {
         {/* Custom Charset Reference Table */}
         {/* min-h, not a fixed h-48: the reference content is a shade taller than
             192px and was being clipped by 18px. */}
-        <GlassPanel className="panel-console p-4 min-h-48 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
+        <GlassPanel className="panel-console p-4 min-h-48 shrink-0 flex flex-col justify-between" clipSize="sm" showCornerTicks={true}>
           <div>
             <div className="border-b border-border-hairline/25 pb-1 mb-2 flex justify-between items-center">
               <div className="flex flex-col">

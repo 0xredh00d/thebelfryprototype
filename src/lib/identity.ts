@@ -22,7 +22,14 @@ export interface Knight {
   label: string;
   /** Public path to the sigil badge. */
   sigil: string;
-  /** Identity color: sigil glow now, presence/cursors later. */
+  /**
+   * Identity color: sigil glow, presence ring, cursors.
+   *
+   * Must be a literal `#rrggbb` hex. Every render site appends a two-digit
+   * alpha to it (`${accent}66`), which a `var(--…)` reference cannot survive —
+   * it yields an invalid color and the element silently falls back to its
+   * inherited one.
+   */
   accent: string;
   /**
    * Optical size correction, multiplied into the rendered box.
@@ -41,7 +48,7 @@ export const KNIGHTS: Record<KnightId, Knight> = {
     callsign: "RED HOOD",
     label: "Red Hood",
     sigil: assetUrl("/assets/Logos/sigil-redhood.png"),
-    accent: "var(--color-red-threat)",
+    accent: "#ff3b4e",
     // Widest, flattest mark of the four — needs the most correction.
     sigilScale: 1.3,
   },

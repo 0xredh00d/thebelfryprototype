@@ -2038,9 +2038,13 @@ button:hover, .btn-interactive:hover {
 
 /* Ambient radar. Decorative: the sweep measures nothing. Transform/opacity
    only, so it never competes with the tile renderer for the main thread. */
+/* The arm must pivot on the dish centre, which is the origin of this group's
+   own user space. `fill-box` would pivot it on the centre of the *wedge's*
+   bounding box instead — a point well off to one side — which swung the whole
+   sweep around a phantom centre and made the dish read as off-centre. */
 .radar-sweep {
-  transform-box: fill-box;
-  transform-origin: center;
+  transform-box: view-box;
+  transform-origin: 0 0;
   animation: radar-rotate 4s linear infinite;
 }
 

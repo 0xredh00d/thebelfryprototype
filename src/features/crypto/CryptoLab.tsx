@@ -475,10 +475,13 @@ export default function CryptoLab() {
         <div className="grid grid-cols-12 xl:grid-rows-[minmax(0,1fr)] gap-4 flex-1 min-h-0">
           
           {/* ================= LEFT COLUMN: CONFIG & CIPHERS ================= */}
-      <div className="col-span-12 xl:col-span-3 flex flex-col space-y-4">
+      {/* `min-h-0` so the cipher list below resolves `flex-1` against the grid
+          row instead of its own content — without it the list grew to its full
+          ~1040px and dragged the console into a page scroll. */}
+      <div className="col-span-12 xl:col-span-3 flex flex-col space-y-4 min-h-0">
         
         {/* Cipher Selector */}
-        <GlassPanel className="p-4 flex flex-col flex-1" clipSize="md">
+        <GlassPanel className="p-4 flex flex-col flex-1 min-h-0" clipSize="md">
           <div className="border-b border-border-hairline/25 pb-2 mb-3">
             <h3 className="font-display text-xs font-black tracking-widest text-cyan-primary flex items-center">
               <span className="w-1.5 h-3 bg-cyan-primary mr-2 transform -skew-x-12 inline-block shadow-[0_0_6px_var(--color-accent-primary)]" />
@@ -713,7 +716,9 @@ export default function CryptoLab() {
         </GlassPanel>
 
         {/* Real-time Crypto Diagnostics */}
-        <GlassPanel className="p-4 h-48 flex flex-col justify-between" clipSize="md" showCornerTicks={true}>
+        {/* min-h, not a fixed h-48: at h-48 the readout's own content stood ~58px
+            taller than the box and the bottom row was cut off. */}
+        <GlassPanel className="p-4 min-h-48 shrink-0 flex flex-col justify-between" clipSize="md" showCornerTicks={true}>
           <div className="border-b border-border-hairline/25 pb-1.5 mb-2.5 flex items-center">
             <DatabaseTag text="STREAM COMPLEXITY RATIOS" />
           </div>
@@ -753,9 +758,16 @@ export default function CryptoLab() {
       <RegistrationFrame className="col-span-12 xl:col-span-5 flex flex-col p-2 bg-bg-void/10 border border-cyan-primary/10 relative overflow-hidden" glow={true}>
         <VignetteBackdrop intensity="medium" className="z-0" />
         
-        <div className="flex-1 flex flex-col space-y-4 relative z-10 h-full">
+        {/* `flex-1 min-h-0`, no `h-full`: h-full resolved against the frame's
+            full height and then sat inside its padding and border, standing 17px
+            proud of the box it lives in. */}
+        <div className="flex-1 min-h-0 flex flex-col space-y-4 relative z-10">
           {/* Input buffer */}
-          <GlassPanel className="p-4 flex-1 flex flex-col relative overflow-hidden min-h-[300px]" clipSize="md" showCornerTicks={true}>
+          {/* 200, not 300. Two stacked buffers at a 300px floor need 616px of
+              column before either can flex, which a 900px-tall screen does not
+              have — the pair overflowed and the output buffer got clipped.
+              `flex-1` still hands them the full height whenever it exists. */}
+          <GlassPanel className="p-4 flex-1 min-h-[200px] flex flex-col relative overflow-hidden" clipSize="md" showCornerTicks={true}>
             <div className="border-b border-border-hairline/25 pb-2 mb-3 flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <DatabaseTag text="FORENSIC DATA INPUT BUFFER" />
@@ -824,7 +836,7 @@ export default function CryptoLab() {
           </div>
 
           {/* Output buffer */}
-          <div className="relative flex-1 flex flex-col min-h-[300px]">
+          <div className="relative flex-1 flex flex-col min-h-[200px]">
             <GlassPanel className="p-4 h-full flex flex-col" clipSize="md" showCornerTicks={true}>
               <div className="border-b border-border-hairline/25 pb-2 mb-3 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
