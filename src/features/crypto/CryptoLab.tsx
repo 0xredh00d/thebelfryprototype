@@ -195,7 +195,7 @@ export default function CryptoLab() {
   const [outputText, setOutputText] = useState<string>("");
   const [outputHex, setOutputHex] = useState<string>("");
   const [flashOp, setFlashOp] = useState<number>(0);
-  const [lastOp, setLastOp] = useState<"ENCRYPTED" | "DECRYPTED" | "">("");
+  const [lastOp, setLastOp] = useState<"ENCRYPTED" | "DECRYPTED" | "SOLVED" | "">("");
   const [copied, setCopied] = useState(false);
   const [showImageIntake, setShowImageIntake] = useState(false);
   const [bruteWordlist, setBruteWordlist] = useState<string[]>(DEFAULT_WORDLIST);
@@ -222,7 +222,7 @@ export default function CryptoLab() {
     const parsed = asResult(output);
     setOutputText(parsed.text);
     setOutputHex(parsed.hex ?? "");
-    setLastOp(mode === "encode" ? "ENCRYPTED" : "DECRYPTED");
+    setLastOp(tool.solver ? "SOLVED" : mode === "encode" ? "ENCRYPTED" : "DECRYPTED");
     setFlashOp(prev => prev + 1);
     playSuccessChime();
   };
@@ -840,34 +840,54 @@ export default function CryptoLab() {
             />
           )}
 
-          {/* Decoder triggers / operator console */}
+          {/* Decoder triggers / operator console. Solver tools (e.g. the Anagram
+              Solver) have no encrypt direction — encode and decode both analyse
+              the input — so they get one action button instead of two. */}
           <div className="flex space-x-3 items-stretch">
-            <button
-              onClick={handleDecrypt}
-              onMouseEnter={() => playHoverEvidence()}
-              className="engine-btn hud-target flex-1 text-sm py-4 cursor-pointer flex items-center justify-center space-x-2"
-              style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
-                "--engine-color": "var(--color-green-active)",
-                "--reticle-color": "var(--color-green-active)"
-              } as React.CSSProperties}
-            >
-              <Unlock className="w-5 h-5" />
-              <span>RUN DECRYPTION ENGINE</span>
-            </button>
-            <button
-              onClick={handleEncrypt}
-              onMouseEnter={() => playHoverEvidence()}
-              className="engine-btn hud-target flex-1 text-sm py-4 cursor-pointer flex items-center justify-center space-x-2"
-              style={{
-                clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
-                "--engine-color": "var(--color-blue-pale)",
-                "--reticle-color": "var(--color-blue-pale)"
-              } as React.CSSProperties}
-            >
-              <Lock className="w-5 h-5" />
-              <span>RUN ENCRYPTION ENGINE</span>
-            </button>
+            {getTool(selectedCipher)?.solver ? (
+              <button
+                onClick={handleDecrypt}
+                onMouseEnter={() => playHoverEvidence()}
+                className="engine-btn hud-target flex-1 text-sm py-4 cursor-pointer flex items-center justify-center space-x-2"
+                style={{
+                  clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                  "--engine-color": "var(--color-green-active)",
+                  "--reticle-color": "var(--color-green-active)"
+                } as React.CSSProperties}
+              >
+                <Sparkles className="w-5 h-5" />
+                <span>RUN {getTool(selectedCipher)?.label.toUpperCase()}</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleDecrypt}
+                  onMouseEnter={() => playHoverEvidence()}
+                  className="engine-btn hud-target flex-1 text-sm py-4 cursor-pointer flex items-center justify-center space-x-2"
+                  style={{
+                    clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                    "--engine-color": "var(--color-green-active)",
+                    "--reticle-color": "var(--color-green-active)"
+                  } as React.CSSProperties}
+                >
+                  <Unlock className="w-5 h-5" />
+                  <span>RUN DECRYPTION ENGINE</span>
+                </button>
+                <button
+                  onClick={handleEncrypt}
+                  onMouseEnter={() => playHoverEvidence()}
+                  className="engine-btn hud-target flex-1 text-sm py-4 cursor-pointer flex items-center justify-center space-x-2"
+                  style={{
+                    clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)",
+                    "--engine-color": "var(--color-blue-pale)",
+                    "--reticle-color": "var(--color-blue-pale)"
+                  } as React.CSSProperties}
+                >
+                  <Lock className="w-5 h-5" />
+                  <span>RUN ENCRYPTION ENGINE</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Output buffer */}

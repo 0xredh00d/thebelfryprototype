@@ -36,6 +36,12 @@ export interface ToolEntry {
   encode: (text: string, options?: ToolOptions) => TransformOutput;
   decode: (text: string, options?: ToolOptions) => TransformOutput;
   optionsSchema?: ToolOptionField[];
+  /**
+   * One-directional "solver" tool: it analyses the input rather than
+   * transforming plaintext↔ciphertext, so encode and decode do the same thing.
+   * The UI shows a single "solve" action instead of encrypt/decrypt buttons.
+   */
+  solver?: boolean;
 }
 
 export function asText(result: TransformOutput): string {

@@ -661,6 +661,7 @@ const tools: ToolEntry[] = [
     id: "anagram",
     label: "Anagram Solver",
     category: "cipher",
+    solver: true,
     encode: anagramEncode,
     decode: anagramDecode,
     optionsSchema: [
